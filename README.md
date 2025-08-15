@@ -21,17 +21,17 @@ backend/
 │   │   └── session.py
 │   ├── domains/
 │   │   ├── auth/
-│   │   │   └── models.py           # 도메인 I/O 모델(Token 등, Pydantic)
+│   │   │   └── models.py           
 │   │   ├── system/
-│   │   │   └── models.py           # DBInfo 등 시스템 I/O 모델(Pydantic)
+│   │   │   └── models.py          
 │   │   └── users/
-│   │       ├── models.py           # UserCreate/UserRead 등(Pydantic)
-│   │       └── service.py          # 유즈케이스/비즈니스 로직
+│   │       ├── models.py           
+│   │       └── service.py          
 │   ├── repositories/
 │   │   ├── db_info.py
-│   │   └── user.py                 # 영속성 접근. 엔티티(SQLAlchemy) 의존
+│   │   └── user.py                 
 │   ├── schemas/
-│   │   └── users.py                # 엔티티(SQLAlchemy) — 테이블 매핑
+│   │   └── users.py                
 │   └── main.py
 ├── alembic/
 ├── requirements.txt
@@ -78,6 +78,36 @@ uvicorn app.main:app --reload
 ```
 - 기본 엔드포인트: `GET /`
 
+4) Mysql 세팅
+- 유저 정보는 보안상 저장하지 않으며, 필요 시 담당자에게 요청하세요.
+
+a. db connect 
+```
+Host: nafal-mvp-db.cn60qq0gyhgp.ap-northeast-2.rds.amazonaws.com
+Port: 3306
+Database: nafal_mvp_dev / nafal_mvp_prod
+User: <유저 이름> / <유저 이름>
+Password: <요청>
+Allowed IP: <팀원 공인 IP>
+```
+
+b. 애플리케이션 환경변수(.env) 추가
+- 개발(RDS dev):
+```env
+DATABASE_URL=mysql+pymysql://dev_eatingrabbit:<PASSWORD>@<RDS_ENDPOINT>:3306/nafal_mvp_dev
+```
+- 운영(RDS prod):
+```env
+DATABASE_URL=mysql+pymysql://prod_eatingrabbit:<PASSWORD>@<RDS_ENDPOINT>:3306/nafal_mvp_prod
+```
+
+c. 연결 확인
+- API: `GET /api/v1/db/info`
+- 파이썬 원라이너:
+```bash
+python -c "import os; from sqlalchemy import create_engine, text; e=create_engine(os.environ['DATABASE_URL']); print(e.connect().execute(text('select 1')).scalar())"
+```
+
 ## 코드 포맷(Black)
 ```bash
 pip install black
@@ -97,68 +127,3 @@ docker compose up -d --build
 ```
 - 서비스: `mysql`, `adminer(8080)`, `api(8000)`
 - API 컨테이너는 `DATABASE_URL`을 env로 주입해 사용
-
-## RDS / MySQL 설정 가이드
-- 유저 정보는 보안상 저장하지 않으며, 필요 시 담당자에게 요청하세요.
-
-### 1) 데이터베이스 분리(개발/운영)
-```sql
-CREATE DATABASE nafal_mvp_dev;
-CREATE DATABASE nafal_mvp_prod;
-```
-
-### 2) 사용자 생성 및 권한 부여
-```sql
--- 개발 계정
-CREATE USER 'dev_eatingrabbit'@'%' IDENTIFIED WITH mysql_native_password BY 'mvp2025!';
-GRANT ALL PRIVILEGES ON nafal_mvp_dev.* TO 'dev_eatingrabbit'@'%';
-
--- 운영 계정
-CREATE USER 'prod_eatingrabbit'@'%' IDENTIFIED WITH mysql_native_password BY 'mvp2025!';
-GRANT ALL PRIVILEGES ON nafal_mvp_prod.* TO 'prod_eatingrabbit'@'%';
-
-FLUSH PRIVILEGES;
-```
-- 보안 강화를 위해 `%` 대신 팀 고정 IP로 제한 권장
-
-### 3) RDS 네트워크/보안 체크
-- 퍼블릭 접근 허용 설정(또는 VPC 내부 통신 구성)
-- 보안 그룹 인바운드: 3306 포트에 팀원/서버 IP 화이트리스트 추가
-
-### 4) 애플리케이션 환경변수(.env)
-- 개발(RDS dev):
-```env
-DATABASE_URL=mysql+pymysql://dev_eatingrabbit:<PASSWORD>@<RDS_ENDPOINT>:3306/nafal_mvp_dev
-```
-- 운영(RDS prod):
-```env
-DATABASE_URL=mysql+pymysql://prod_eatingrabbit:<PASSWORD>@<RDS_ENDPOINT>:3306/nafal_mvp_prod
-```
-- 비밀번호 특수문자는 URL 인코딩 권장(@ → %40, ! → %21 등)
-- SSL 사용 시(권장):
-```env
-DATABASE_URL=mysql+pymysql://.../nafal_mvp_dev?ssl_ca=/path/to/rds-combined-ca-bundle.pem
-```
-
-### 5) 연결 확인
-- API: `GET /api/v1/db/info`
-- 파이썬 원라이너:
-```bash
-python -c "import os; from sqlalchemy import create_engine, text; e=create_engine(os.environ['DATABASE_URL']); print(e.connect().execute(text('select 1')).scalar())"
-```
-
-### 6) 운영 베스트 프랙티스(간단 요약)
-- 운영 RDS 계정 최소 권한 원칙
-- Adminer/DB GUI 외부 공개 금지(SSH 터널 사용)
-- 비밀값은 .env로만 관리(.gitignore). 예시는 `ENV.EXAMPLE` 참조
-- SQLAlchemy 엔진 옵션 권장: `pool_pre_ping=True`, `pool_recycle=3600`
-
-### 공유용 접속 정보 예시(실제 값은 담당자에게 요청)
-```
-Host: nafal-mvp-db.cn60qq0gyhgp.ap-northeast-2.rds.amazonaws.com
-Port: 3306
-Database: nafal_mvp_dev / nafal_mvp_prod
-User: dev_eatingrabbit / prod_eatingrabbit
-Password: <요청>
-Allowed IP: <팀원 공인 IP>
-```
