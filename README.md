@@ -57,28 +57,21 @@ backend/
 - api는 절대 schemas(엔티티)를 직접 참조하지 않음
 
 ## 로컬 환경 설정
-1) 의존성 설치
+### 1) 의존성 설치
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-2) 환경변수 파일 생성
-- `ENV.EXAMPLE`를 복사해 `.env`로 저장 후 값 수정
+### 2) 환경변수 파일 생성
+- 별도로 요청하여 전달받아주세요.
+- 세부 값만 수정할 경우 : `ENV.EXAMPLE`를 복사해 `.env`로 저장 후 값 수정
 ```bash
 cp ENV.EXAMPLE .env
 ```
-- 필수: `DATABASE_URL` (예: RDS dev/prod 또는 로컬 MySQL)
-- CORS: `CORS_ORIGINS`는 JSON 배열 또는 CSV/단일 문자열 모두 지원
-- JWT: `SECRET_KEY`는 운영에서 반드시 변경
 
-3) 서버 실행
-```bash
-uvicorn app.main:app --reload
-```
-- 기본 엔드포인트: `GET /`
 
-4) Mysql 세팅
+### 3) Mysql 세팅
 - 유저 정보는 보안상 저장하지 않으며, 필요 시 담당자에게 요청하세요.
 
 a. db connect 
@@ -107,6 +100,13 @@ c. 연결 확인
 ```bash
 python -c "import os; from sqlalchemy import create_engine, text; e=create_engine(os.environ['DATABASE_URL']); print(e.connect().execute(text('select 1')).scalar())"
 ```
+
+### 4) 서버 실행
+```bash
+uvicorn app.main:app --reload
+```
+- 기본 엔드포인트: `GET /`
+
 
 ## 코드 포맷(Black)
 ```bash
