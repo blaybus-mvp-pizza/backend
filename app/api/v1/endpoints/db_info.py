@@ -12,7 +12,7 @@ from app.domains.system.models import DBInfo
 router = APIRouter()
 
 
-@router.get("/info", response_model=DBInfo, summary="Get MySQL database info")
+@router.get("/metadata", response_model=DBInfo, summary="Get MySQL database info")
 async def get_db_info(db: Session = Depends(get_db)) -> DBInfo:
     version = fetch_database_version(db)
     database = fetch_current_database(db)
