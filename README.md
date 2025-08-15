@@ -2,7 +2,7 @@
 
 해커톤용 FastAPI + MySQL 백엔드 스캐폴딩입니다. LangGraph/OpenAI 확장을 염두에 둔 구조로 설계했습니다.
 
-## 구조
+## 아키텍쳐 구조
 ```
 backend/
 ├── app/
