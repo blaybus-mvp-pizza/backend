@@ -54,11 +54,15 @@ jobs:
       - name: SSH to EC2 and deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}     # 13.125.244.16
-          username: ${{ secrets.EC2_USER }} # ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}   # PEM 내용
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            cd ~/app/infra/dev
-            IMAGE=harryseeee/nafal-mvp:latest docker compose pull
-            IMAGE=harryseeee/nafal-mvp:latest docker compose up -d
+            cd ~/app
+            git fetch --all
+            git reset --hard origin/main
+            cd infra/dev
+            # dev는 로컬 빌드로 배포: pull 제거
+            docker compose down || true
+            docker compose up -d --build
