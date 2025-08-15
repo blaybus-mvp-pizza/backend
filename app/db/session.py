@@ -4,7 +4,7 @@ from app.core.config import settings
 
 
 class Base(DeclarativeBase):
-	pass
+    pass
 
 
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)

@@ -19,6 +19,7 @@ ENV
 # IDE/Editor
 .vscode/
 .idea/
+*.iml
 
 # Tests/Coverage
 .pytest_cache/
