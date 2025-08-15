@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.venv/
+venv/
+.env
+.env.*
+ENV
+# keep examples
+!.env.example
+!ENV.EXAMPLE
+
+# OS
+.DS_Store
+
+# IDE/Editor
+.vscode/
+.idea/
+
+# Tests/Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Docker
+docker-compose.override.yml
+
+# Node (if frontend added later)
+node_modules/
