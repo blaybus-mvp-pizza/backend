@@ -1,3 +1,4 @@
+from sqlalchemy import JSON
 from sqlalchemy.orm import Session
 from app.repositories.user import get_by_username_or_email, create_user
 from app.core.security import get_password_hash, verify_password
@@ -23,3 +24,25 @@ def authenticate_user(
     if not verify_password(password, user.hashed_password):
         return None
     return user
+
+
+def signup_user_with_oauth(
+    db: Session,
+    *,
+    email: str,
+    nickname: str,
+    provider: str,
+    provider_user_id: str,
+    raw_profile_json: JSON
+) -> UserEntity:
+    user = get_by_username_or_email(db, email)
+    if user:
+        return user
+    return create_user(
+        db,
+        email=email,
+        nickname=nickname,
+        provider=provider,
+        provider_user_id=provider_user_id,
+        raw_profile_json=raw_profile_json,
+    )
