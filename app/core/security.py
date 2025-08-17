@@ -8,7 +8,6 @@ from passlib.context import CryptContext
 from app.core.config import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests
-from app.repositories.user import get_user_by_id
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 http_bearer = HTTPBearer(auto_error=False)
