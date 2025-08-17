@@ -1,8 +1,13 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+
+class HealthAPI:
+    def __init__(self):
+        self.router = APIRouter()
+
+        @self.router.get("/", summary="Health check")
+        async def health() -> dict:
+            return {"status": "ok"}
 
 
-@router.get("/", summary="Health check")
-async def health() -> dict:
-    return {"status": "ok"}
+api = HealthAPI().router
