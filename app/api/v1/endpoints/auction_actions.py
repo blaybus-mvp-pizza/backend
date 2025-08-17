@@ -10,6 +10,7 @@ from app.repositories.auction_write import AuctionWriteRepository
 from app.repositories.order_write import OrderWriteRepository
 from app.repositories.payment_write import PaymentWriteRepository
 from app.repositories.notification_write import NotificationWriteRepository
+from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 
 
 def get_auction_service(db: Session = Depends(get_db)) -> AuctionService:
@@ -33,6 +34,33 @@ class AuctionAPI:
             summary="입찰하기",
             description="현재 진행중인 경매에 입찰합니다. 필요 시 보증금이 결제됩니다.",
             response_description="입찰 결과",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "AUCTION_NOT_FOUND": {
+                                    "summary": "경매 없음",
+                                    "value": {
+                                        "code": "AUCTION_NOT_FOUND",
+                                        "message": "경매를 찾을 수 없습니다.",
+                                    },
+                                },
+                                "BID_NOT_ALLOWED": {
+                                    "summary": "입찰 불가(금액/상태)",
+                                    "value": {
+                                        "code": "BID_NOT_ALLOWED",
+                                        "message": "입찰할 수 없습니다.",
+                                    },
+                                },
+                            }
+                        }
+                    },
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def bid(
             auction_id: int,
@@ -50,6 +78,33 @@ class AuctionAPI:
             summary="즉시구매",
             description="즉시구매 가격으로 주문과 결제를 한 번에 처리합니다.",
             response_description="즉시구매 결과",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "AUCTION_NOT_FOUND": {
+                                    "summary": "경매 없음",
+                                    "value": {
+                                        "code": "AUCTION_NOT_FOUND",
+                                        "message": "경매를 찾을 수 없습니다.",
+                                    },
+                                },
+                                "BUY_NOT_ALLOWED": {
+                                    "summary": "즉시구매 불가(상태/가격)",
+                                    "value": {
+                                        "code": "BUY_NOT_ALLOWED",
+                                        "message": "즉시구매를 진행할 수 없습니다.",
+                                    },
+                                },
+                            }
+                        }
+                    },
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def buy_now(
             auction_id: int,

@@ -9,6 +9,7 @@ from app.domains.auctions.auction_info import AuctionInfo
 from app.domains.auctions.bid_item import BidItem
 from app.domains.products.product_meta import ProductMeta
 from app.domains.products.service import ProductService
+from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 
 
 def get_product_service(db: Session = Depends(get_db)) -> ProductService:
@@ -25,6 +26,10 @@ class CatalogAPI:
             summary="스토어 메타데이터",
             description="스토어의 상세 메타데이터를 조회합니다.",
             response_description="스토어 메타",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def get_store_meta(
             store_id: int, service: ProductService = Depends(get_product_service)
@@ -37,6 +42,10 @@ class CatalogAPI:
             summary="스토어 상품 목록",
             description="특정 스토어의 상품을 정렬/페이징하여 조회합니다.",
             response_description="상품 리스트",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def list_products_by_store(
             store_id: int,
@@ -59,6 +68,10 @@ class CatalogAPI:
             summary="상품 메타데이터",
             description="상품의 상세 메타데이터를 조회합니다.",
             response_description="상품 메타",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def product_meta(
             product_id: int, service: ProductService = Depends(get_product_service)
@@ -71,6 +84,10 @@ class CatalogAPI:
             summary="상품 경매 정보",
             description="상품의 현재 경매 상태/입찰 스텝/보증금 등을 조회합니다.",
             response_description="경매 정보",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def product_auction_info(
             product_id: int, service: ProductService = Depends(get_product_service)
@@ -83,6 +100,10 @@ class CatalogAPI:
             summary="상품 입찰 내역",
             description="상품의 입찰 내역을 페이징 조회합니다.",
             response_description="입찰 리스트",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def product_bids(
             product_id: int,
