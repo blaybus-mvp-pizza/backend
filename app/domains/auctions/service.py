@@ -78,6 +78,7 @@ class AuctionService:
         with transactional(self.session):
             auction.status = AuctionStatus.ENDED.value
             auction.product.is_sold = 1
+            # TODO: 이전 입찰자들 환불 처리
             self.notifications.create(
                 user_id=user_id,
                 title=f"{auction.product.name}",
