@@ -7,6 +7,7 @@ from app.domains.orders.service import OrderService
 from app.domains.orders.order_result import OrderResult
 from app.repositories.order_write import OrderWriteRepository
 from app.repositories.payment_write import PaymentWriteRepository
+from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 
 
 class BuyNowCheckoutRequest(BaseModel):
@@ -35,6 +36,26 @@ router = APIRouter()
     summary="즉시구매 체크아웃",
     description="주문 생성과 결제를 한 번에 처리합니다. 요청자 토큰의 사용자 기준으로 결제됩니다.",
     response_description="주문 결과",
+    responses={
+        400: {
+            "model": BusinessErrorResponse,
+            "description": "비즈니스 에러",
+            "content": {
+                "application/json": {
+                    "examples": {
+                        "BUY_NOT_ALLOWED": {
+                            "summary": "즉시구매 불가",
+                            "value": {
+                                "code": "BUY_NOT_ALLOWED",
+                                "message": "즉시구매를 진행할 수 없습니다.",
+                            },
+                        }
+                    }
+                }
+            },
+        },
+        500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+    },
 )
 async def checkout_buy_now(
     req: BuyNowCheckoutRequest,

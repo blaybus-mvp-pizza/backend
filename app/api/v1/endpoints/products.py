@@ -7,6 +7,7 @@ from app.domains.products.product_list_item import ProductListItem
 from app.domains.products.store_with_products import StoreWithProducts
 from app.domains.products.store_meta import StoreMeta
 from app.domains.products.service import ProductService
+from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 
 
 def get_product_service(db: Session = Depends(get_db)) -> ProductService:
@@ -23,6 +24,28 @@ class ProductsAPI:
             summary="마감임박 상품 조회",
             description="경매 종료 임박 순으로 상품을 페이징 조회합니다 (경매 상태 RUNNING).",
             response_description="상품 리스트",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                },
+                500: {
+                    "model": ServerErrorResponse,
+                    "description": "서버 내부 오류",
+                    "content": {
+                        "application/json": {
+                            "examples": {
+                                "INTERNAL_SERVER_ERROR": {
+                                    "value": {
+                                        "code": "INTERNAL_SERVER_ERROR",
+                                        "message": "서버 내부 오류",
+                                    }
+                                }
+                            }
+                        }
+                    },
+                },
+            },
         )
         async def get_ending_soon_products(
             service: ProductService = Depends(get_product_service),
@@ -39,6 +62,13 @@ class ProductsAPI:
             summary="MD 추천 상품 조회",
             description="내부 추천 기준에 따라 상품을 페이징 조회합니다.",
             response_description="상품 리스트",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def get_recommended_products(
             service: ProductService = Depends(get_product_service),
@@ -55,6 +85,13 @@ class ProductsAPI:
             summary="신규 상품 조회",
             description="최근 등록된 상품을 페이징 조회합니다.",
             response_description="상품 리스트",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def get_new_products(
             service: ProductService = Depends(get_product_service),
@@ -71,6 +108,13 @@ class ProductsAPI:
             summary="최근 오픈 스토어 + 최신 상품 묶음",
             description="최근 오픈한 스토어들을 페이징으로 조회하고, 각 스토어의 최신 상품 일부를 함께 반환합니다.",
             response_description="스토어 + 상품 묶음 리스트",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def get_recent_stores_with_products(
             service: ProductService = Depends(get_product_service),
@@ -90,6 +134,13 @@ class ProductsAPI:
             summary="스토어 목록",
             description="스토어의 요약 메타데이터를 페이징 조회합니다.",
             response_description="스토어 메타 리스트",
+            responses={
+                400: {
+                    "model": BusinessErrorResponse,
+                    "description": "비즈니스 에러",
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def get_store_list(
             service: ProductService = Depends(get_product_service),
