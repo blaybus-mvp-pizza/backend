@@ -4,9 +4,9 @@ from app.domains.notifications.dto import NotifyRequest, NotifyResult
 
 
 class NotificationService:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, repo: NotificationWriteRepository | None = None):
         self.db = db
-        self.repo = NotificationWriteRepository(db)
+        self.repo = repo or NotificationWriteRepository(db)
 
     def send(self, req: NotifyRequest) -> NotifyResult:
         """알림 기록 생성 (MVP)
