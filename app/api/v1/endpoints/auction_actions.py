@@ -27,7 +27,13 @@ class AuctionAPI:
     def __init__(self):
         self.router = APIRouter()
 
-        @self.router.post("/bid", response_model=BidResult)
+        @self.router.post(
+            "/bid",
+            response_model=BidResult,
+            summary="입찰하기",
+            description="현재 진행중인 경매에 입찰합니다. 필요 시 보증금이 결제됩니다.",
+            response_description="입찰 결과",
+        )
         async def bid(
             auction_id: int,
             amount: float,
@@ -38,7 +44,13 @@ class AuctionAPI:
                 auction_id=auction_id, amount=amount, user_id=user_id
             )
 
-        @self.router.post("/buy-now", response_model=BuyNowResult)
+        @self.router.post(
+            "/buy-now",
+            response_model=BuyNowResult,
+            summary="즉시구매",
+            description="즉시구매 가격으로 주문과 결제를 한 번에 처리합니다.",
+            response_description="즉시구매 결과",
+        )
         async def buy_now(
             auction_id: int,
             service: AuctionService = Depends(get_auction_service),
