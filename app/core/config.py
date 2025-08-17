@@ -7,7 +7,7 @@ import json
 class Settings(BaseSettings):
     PROJECT_NAME: str = "MVP Project"
     VERSION: str = "0.1.0"
-    API_V1_STR: str = "/api/v1"
+    API_V1_STR: str = "/users/v1"
 
     # Required
     DATABASE_URL: str  # must be provided via env/.env
