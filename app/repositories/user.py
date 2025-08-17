@@ -4,10 +4,8 @@ from sqlalchemy import JSON, select
 from app.schemas.users import AuthProvider, User
 
 
-def get_by_username_or_email(db: Session, identifier: str) -> Optional[User]:
-    stmt = select(User).where(
-        (User.nickname == identifier) | (User.email == identifier)
-    )
+def get_user_by_email(db: Session, identifier: str) -> Optional[User]:
+    stmt = select(User).where(User.email == identifier)
     return db.execute(stmt).scalar_one_or_none()
 
 
@@ -40,6 +38,26 @@ def create_user(
         raw_profile_json=raw_profile_json,
     )
     db.add(auth)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+def update_user(
+    db: Session,
+    user_id: int,
+    nickname: str,
+    phone_number: Optional[str] = None,
+    profile_image_url: Optional[str] = None,
+    is_phone_verified: bool = False,
+) -> Optional[User]:
+    user = get_user_by_id(db, user_id)
+    if not user:
+        return None
+    user.nickname = nickname
+    user.phone_number = phone_number
+    user.profile_image_url = profile_image_url
+    user.is_phone_verified = is_phone_verified
     db.commit()
     db.refresh(user)
     return user

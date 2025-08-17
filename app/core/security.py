@@ -9,7 +9,6 @@ from app.core.config import settings
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from app.repositories.user import get_user_by_id
-from app.schemas.users import User as UserEntity
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 http_bearer = HTTPBearer(auto_error=False)
@@ -44,7 +43,7 @@ def decode_access_token(token: str) -> dict:
 
 async def require_auth(
     auth: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
-) -> str:
+) -> int:
     if not auth or not auth.credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing Authorization"
@@ -57,7 +56,7 @@ async def require_auth(
             raise ValueError("Invalid token payload")
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
-    return user_id
+    return int(user_id)
 
 
 def verify_google_id_token(token: str) -> Optional[dict]:
@@ -85,7 +84,6 @@ async def get_google_id_token(code: str) -> Optional[str]:
         "grant_type": "authorization_code",
     }
 
-    # token_response = await app.state.http_client.post(token_url, data=data)
     async with httpx.AsyncClient() as client:
         token_response = await client.post(token_url, data=data)
     if token_response.status_code != 200:

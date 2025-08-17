@@ -1,29 +1,16 @@
+from typing import Optional
 from sqlalchemy import JSON
 from sqlalchemy.orm import Session
-from app.repositories.user import get_by_username_or_email, create_user
+from app.domains.users.models import UserRead, UserUpdate
+from app.repositories import user
+from app.repositories.user import (
+    get_user_by_email,
+    create_user,
+    get_user_by_id,
+    update_user,
+)
 from app.core.security import get_password_hash, verify_password
 from app.schemas.users import User as UserEntity
-
-
-def signup_user(db: Session, *, email: str, username: str, password: str) -> UserEntity:
-    existing = get_by_username_or_email(db, username) or get_by_username_or_email(
-        db, email
-    )
-    if existing:
-        raise ValueError("User already exists")
-    hashed = get_password_hash(password)
-    return create_user(db, email=email, username=username, hashed_password=hashed)
-
-
-def authenticate_user(
-    db: Session, *, identifier: str, password: str
-) -> UserEntity | None:
-    user = get_by_username_or_email(db, identifier)
-    if not user:
-        return None
-    if not verify_password(password, user.hashed_password):
-        return None
-    return user
 
 
 def signup_user_with_oauth(
@@ -34,8 +21,8 @@ def signup_user_with_oauth(
     provider: str,
     provider_user_id: str,
     raw_profile_json: JSON
-) -> UserEntity:
-    user = get_by_username_or_email(db, email)
+) -> UserRead:
+    user = get_user_by_email(db, email)
     if user:
         return user
     return create_user(
@@ -46,3 +33,25 @@ def signup_user_with_oauth(
         provider_user_id=provider_user_id,
         raw_profile_json=raw_profile_json,
     )
+
+
+def get_user_info(db: Session, user_id: int) -> Optional[UserRead]:
+    user = get_user_by_id(db, user_id)
+    return UserRead.model_validate(user) if user else None
+
+
+def update_user_info(
+    db: Session, user_id: int, user_data: UserUpdate
+) -> Optional[UserRead]:
+    # 핸드폰번호 변경 시 핸드폰 인증 여부를 확인합니다.
+    if (user_data.phone_number is not None) and (user_data.is_phone_verified is False):
+        raise ValueError("Phone verification is required")
+    user = update_user(
+        db,
+        user_id=user_id,
+        nickname=user_data.nickname,
+        phone_number=user_data.phone_number,
+        profile_image_url=user_data.profile_image_url,
+        is_phone_verified=user_data.is_phone_verified,
+    )
+    return UserRead.model_validate(user) if user else None
