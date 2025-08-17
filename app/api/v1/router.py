@@ -7,7 +7,6 @@ from app.api.v1.endpoints import (
     product_detail,
     auction_actions,
     payments,
-    orders,
 )
 
 api_router = APIRouter()
@@ -18,4 +17,3 @@ api_router.include_router(products.api, prefix="/products", tags=["products"])
 api_router.include_router(product_detail.api, prefix="/catalog", tags=["catalog"])
 api_router.include_router(auction_actions.api, prefix="/auction", tags=["auction"])
 api_router.include_router(payments.api, prefix="/payments", tags=["payments"])
-api_router.include_router(orders.router, prefix="/orders", tags=["orders"])
