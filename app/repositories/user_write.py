@@ -39,6 +39,7 @@ class UserWriteRepository:
         user.phone_number = phone_number
         user.profile_image_url = profile_image_url
         user.is_phone_verified = is_phone_verified
+        self.db.flush()
         self.db.refresh(user)
         return user
 
@@ -81,6 +82,7 @@ class UserWriteRepository:
     def set_phone_verification_as_verified(
         self, verification: PhoneVerification, verified_at: datetime
     ) -> PhoneVerification:
-        verification.verified_at = verified_at
+        verification.verified_at = verified_at.isoformat()
+        self.db.flush()
         self.db.refresh(verification)
         return verification

@@ -45,19 +45,24 @@ class UsersAPI:
             response_model=UserRead,
             response_description="수정된 현재 유저 정보",
             summary="[required auth] Update current user",
-            description="현재 로그인 한 사용자의 정보를 업데이트합니다. * 핸드폰번호 변경 시 핸드폰 인증 여부를 확인합니다.",
+            description="현재 로그인 한 사용자의 정보를 업데이트합니다. 핸드폰번호 변경 시 핸드폰 인증 여부를 확인합니다.",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                404: {
+                    "model": BusinessErrorResponse,
+                    "description": "유저를 찾을 수 없음",
+                },
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
         )
         async def update_current_user(
             user_data: UserUpdate,
             user_id: int = Depends(require_auth),
             service: UserService = Depends(get_user_service),
         ) -> UserRead:
-            try:
-                user = service.update_user_info(user_id=user_id, user_data=user_data)
-                if not user:
-                    raise HTTPException(status_code=404, detail="User not found")
-            except ValueError as e:
-                raise HTTPException(status_code=400, detail=str(e))
+            user = service.update_user_info(user_id=user_id, user_data=user_data)
+            if not user:
+                raise BusinessError(status_code=404, detail="User not found")
             return user
 
         @self.router.post(

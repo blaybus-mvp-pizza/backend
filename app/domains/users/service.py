@@ -75,7 +75,18 @@ class UserService:
         if (user_data.phone_number is not None) and (
             user_data.is_phone_verified is False
         ):
-            raise ValueError("Phone verification is required")
+            raise BusinessError(code=400, message="Phone verification is required")
+        if user_data.is_phone_verified:
+            verification = (
+                self.user_read.get_verified_phone_verification_by_phone_number(
+                    phone_number=user_data.phone_number
+                )
+            )
+            print(verification.code6)
+            if not verification or verification.verified_at is None:
+                raise BusinessError(
+                    code=400, message="Phone number must be verified before updating"
+                )
         with transactional(self.session):
             user = self.user_write.update_user(
                 user=user,
@@ -128,7 +139,7 @@ class UserService:
     def verify_phone_verification_sms(
         self, phone_number: str, code6: str, user_id: int
     ) -> PhoneVerificationResult:
-        verification = self.user_read.get_phone_verification_by_phone_number(
+        verification = self.user_read.get_resent_phone_verification_by_phone_number(
             phone_number=phone_number
         )
         if not verification or verification.code6 != code6:

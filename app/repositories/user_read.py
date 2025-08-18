@@ -23,7 +23,7 @@ class UserReadRepository:
         stmt = select(User).where(User.phone_number == phone_number)
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def get_phone_verification_by_phone_number(
+    def get_resent_phone_verification_by_phone_number(
         self, phone_number: str
     ) -> Optional[PhoneVerification]:
         stmt = (
@@ -33,5 +33,14 @@ class UserReadRepository:
                 PhoneVerification.verified_at.is_(None),
             )
             .order_by(PhoneVerification.created_at.desc())
+        )
+        return self.db.execute(stmt).scalars().first()
+
+    def get_verified_phone_verification_by_phone_number(
+        self, phone_number: str
+    ) -> Optional[PhoneVerification]:
+        stmt = select(PhoneVerification).where(
+            PhoneVerification.phone_number == phone_number,
+            PhoneVerification.verified_at.is_not(None),
         )
         return self.db.execute(stmt).scalars().first()
