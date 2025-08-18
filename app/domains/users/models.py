@@ -29,3 +29,12 @@ class UserUpdate(BaseModel):
     model_config = {
         "from_attributes": True,
     }
+
+
+class SendSMSResult(BaseModel):
+    success: bool
+    expires_at: str | None = None
+
+
+class PhoneVerificationResult(BaseModel):
+    success: bool

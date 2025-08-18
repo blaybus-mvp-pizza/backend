@@ -4,8 +4,13 @@ from requests import Session
 from app.core.deps import get_db
 from app.core.errors import BusinessError
 from app.core.security import require_auth
-from app.domains.common.error_response import BusinessErrorResponse
-from app.domains.users.models import UserRead, UserUpdate
+from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
+from app.domains.users.models import (
+    PhoneVerificationResult,
+    SendSMSResult,
+    UserRead,
+    UserUpdate,
+)
 from app.domains.users.service import UserService
 from app.repositories.user_read import UserReadRepository
 from app.repositories.user_write import UserWriteRepository
@@ -54,6 +59,47 @@ class UsersAPI:
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=str(e))
             return user
+
+        @self.router.post(
+            "/me/phone-verification-sms",
+            response_model=SendSMSResult,
+            summary="[required auth] Request phone verification SMS",
+            description="휴대폰번호로 인증 SMS를 요청합니다. ",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
+        )
+        async def request_phone_verification_sms(
+            phone_number: str,
+            user_id: int = Depends(require_auth),
+            service: UserService = Depends(get_user_service),
+        ) -> SendSMSResult:
+            return service.send_phone_verification_sms(
+                user_id=user_id, phone_number=phone_number
+            )
+
+        @self.router.post(
+            "/me/phone-verification-sms/verify",
+            response_model=PhoneVerificationResult,
+            summary="[required auth] Verify phone verification SMS",
+            description="인증 SMS로 받은 인증 코드를 검증합니다.",
+            responses={
+                400: {"model": BusinessErrorResponse, "description": "비즈니스 에러"},
+                500: {"model": ServerErrorResponse, "description": "서버 내부 오류"},
+            },
+        )
+        async def verify_phone_verification_sms(
+            phone_number: str,
+            code6: str,
+            user_id: int = Depends(require_auth),
+            service: UserService = Depends(get_user_service),
+        ) -> PhoneVerificationResult:
+            return service.verify_phone_verification_sms(
+                phone_number=phone_number,
+                code6=code6,
+                user_id=user_id,
+            )
 
 
 api = UsersAPI().router

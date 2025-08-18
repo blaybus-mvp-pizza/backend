@@ -1,7 +1,9 @@
+from datetime import datetime
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import JSON, select
 from app.schemas.users import AuthProvider, User
+from app.schemas.users.phone_verification import PhoneVerification
 
 
 class UserWriteRepository:
@@ -58,3 +60,27 @@ class UserWriteRepository:
         self.db.add(auth)
         self.db.flush()
         return auth
+
+    def create_phone_verification(
+        self,
+        phone_number: str,
+        code6: str,
+        expires_at: datetime,
+        verified_at: Optional[datetime] = None,
+    ) -> PhoneVerification:
+        phone_verification = PhoneVerification(
+            phone_number=phone_number,
+            code6=code6,
+            expires_at=expires_at,
+            verified_at=verified_at,
+        )
+        self.db.add(phone_verification)
+        self.db.flush()
+        return phone_verification
+
+    def set_phone_verification_as_verified(
+        self, verification: PhoneVerification, verified_at: datetime
+    ) -> PhoneVerification:
+        verification.verified_at = verified_at
+        self.db.refresh(verification)
+        return verification

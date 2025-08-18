@@ -1,8 +1,10 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import JSON, select
 from app.schemas.users import AuthProvider, User
+from app.schemas.users.phone_verification import PhoneVerification
 
 
 class UserReadRepository:
@@ -16,3 +18,20 @@ class UserReadRepository:
     def get_user_by_id(self, user_id: int) -> Optional[User]:
         stmt = select(User).where(User.id == user_id)
         return self.db.execute(stmt).scalar_one_or_none()
+
+    def get_user_by_phone_number(self, phone_number: str) -> Optional[User]:
+        stmt = select(User).where(User.phone_number == phone_number)
+        return self.db.execute(stmt).scalar_one_or_none()
+
+    def get_phone_verification_by_phone_number(
+        self, phone_number: str
+    ) -> Optional[PhoneVerification]:
+        stmt = (
+            select(PhoneVerification)
+            .where(
+                PhoneVerification.phone_number == phone_number,
+                PhoneVerification.verified_at.is_(None),
+            )
+            .order_by(PhoneVerification.created_at.desc())
+        )
+        return self.db.execute(stmt).scalars().first()
