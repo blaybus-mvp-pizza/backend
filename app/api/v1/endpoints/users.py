@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, status
 from requests import Session
 
 from app.core.deps import get_db
+from app.core.errors import BusinessError
 from app.core.security import require_auth
+from app.domains.common.error_response import BusinessErrorResponse
 from app.domains.users.models import UserRead, UserUpdate
 from app.domains.users.service import UserService
 from app.repositories.user_read import UserReadRepository
@@ -17,7 +19,13 @@ class UsersAPI:
     def __init__(self):
         self.router = APIRouter()
 
-        @self.router.get("/me", summary="[required auth] Get current user")
+        @self.router.get(
+            "/me",
+            response_model=UserRead,
+            response_description="현재 유저 정보",
+            summary="[required auth] Get current user",
+            description="현재 로그인 한 사용자의 정보를 반환합니다.",
+        )
         async def get_current_user(
             user_id: int = Depends(require_auth),
             service: UserService = Depends(get_user_service),
@@ -29,8 +37,10 @@ class UsersAPI:
 
         @self.router.put(
             "/me",
+            response_model=UserRead,
+            response_description="수정된 현재 유저 정보",
             summary="[required auth] Update current user",
-            description="* 핸드폰번호 변경 시 핸드폰 인증 여부를 확인합니다.",
+            description="현재 로그인 한 사용자의 정보를 업데이트합니다. * 핸드폰번호 변경 시 핸드폰 인증 여부를 확인합니다.",
         )
         async def update_current_user(
             user_data: UserUpdate,

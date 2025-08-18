@@ -22,16 +22,6 @@ class UserWriteRepository:
         )
         self.db.add(user)
         self.db.flush()
-
-        auth = AuthProvider(
-            user_id=user.id,
-            provider=provider,
-            provider_user_id=provider_user_id,
-            email=email,
-            raw_profile_json=raw_profile_json,
-        )
-        self.db.add(auth)
-        self.db.commit()
         self.db.refresh(user)
         return user
 
@@ -47,6 +37,24 @@ class UserWriteRepository:
         user.phone_number = phone_number
         user.profile_image_url = profile_image_url
         user.is_phone_verified = is_phone_verified
-        self.db.commit()
         self.db.refresh(user)
         return user
+
+    def create_auth_provider(
+        self,
+        user_id: int,
+        provider: str,
+        provider_user_id: str,
+        email: str,
+        raw_profile_json: JSON,
+    ) -> AuthProvider:
+        auth = AuthProvider(
+            user_id=user_id,
+            provider=provider,
+            provider_user_id=provider_user_id,
+            email=email,
+            raw_profile_json=raw_profile_json,
+        )
+        self.db.add(auth)
+        self.db.flush()
+        return auth

@@ -8,7 +8,7 @@ from app.core.security import (
     verify_google_id_token,
 )
 from app.domains.auth.enum import PROVIDER_TYPE
-from app.domains.auth.models import Token
+from app.domains.auth.models import Login_url, Token
 from app.domains.users.service import UserService
 from app.repositories.user_read import UserReadRepository
 from app.repositories.user_write import UserWriteRepository
@@ -24,7 +24,10 @@ class AuthAPI:
 
         @self.router.get(
             "/login/google/login-url",
+            response_model=Login_url,
+            response_description="구글 로그인 URL 포함한 body",
             summary="Authenticate user for Google login",
+            description="구글 소셜 로그인 시 사용할 URL을 반환합니다. 해당 URL로 이동 시 로그인 후 얻은 code와 함께 /user/v1/auth/login/google/callback로 리다이렉션됩니다.",
         )
         async def login_google() -> str:
             google_auth_endpoint = "https://accounts.google.com/o/oauth2/v2/auth"
@@ -38,12 +41,14 @@ class AuthAPI:
                 f"&response_type={response_type}"
                 f"&scope={scope}"
             )
-            return redirect_url
+            return Login_url(login_url=redirect_url)
 
         @self.router.get(
             "/login/google/callback",
             response_model=Token,
+            response_description="토큰 포함한 body",
             summary="Handle Google OAuth callback and issue JWT token",
+            description="구글 소셜 로그인 후 리다이렉션되는 콜백 URL입니다. 이 엔드포인트는 Google OAuth 인증 후 받은 code를 사용하여 JWT 토큰을 발급합니다.",
         )
         async def google_callback(
             code: str, service: UserService = Depends(get_user_service)
