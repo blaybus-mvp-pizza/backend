@@ -36,7 +36,8 @@ class BidVerificator:
         )
         buy_now = float(info.buy_now_price) if info.buy_now_price is not None else None
         steps = BidRules.make_bid_steps(current, buy_now, count=100)
-        if amount not in steps:
+        # allow equality tolerance due to float -> DECIMAL conversions
+        if all(abs(float(amount) - float(s)) > 0.1 for s in steps):
             raise BusinessError(
                 ErrorCode.BID_NOT_ALLOWED, "입찰 가능한 금액이 아닙니다."
             )

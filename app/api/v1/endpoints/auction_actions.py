@@ -68,8 +68,9 @@ class AuctionAPI:
             service: AuctionService = Depends(get_auction_service),
             user_id: int = Depends(get_current_user_id),
         ):
+            # normalize amount to float explicitly
             return service.place_bid(
-                auction_id=auction_id, amount=amount, user_id=user_id
+                auction_id=auction_id, amount=float(amount), user_id=user_id
             )
 
         @self.router.post(

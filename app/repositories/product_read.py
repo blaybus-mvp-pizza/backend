@@ -131,7 +131,7 @@ class ProductReadRepository:
             .offset(offset)
         )
         stores = [row[0] for row in self.db.execute(stores_stmt)]
-        result: List[StoreWithProducts] = []
+        result: List[tuple] = []
         for store in stores:
             stmt = (
                 select(
@@ -156,15 +156,9 @@ class ProductReadRepository:
             )
             products_rows = self.db.execute(stmt)
             result.append(
-                StoreWithProducts(
-                    store=StoreMeta(
-                        store_id=store.id,
-                        image_url=store.image_url,
-                        name=store.name,
-                        description=store.description,
-                        sales_description=store.sales_description,
-                    ),
-                    products=rows_to_product_items(products_rows),
+                (
+                    store,
+                    rows_to_product_items(products_rows),
                 )
             )
         return result
@@ -256,15 +250,15 @@ class ProductReadRepository:
                 .order_by(ProductImage.sort_order.asc())
             )
         ]
-        from app.schemas.products import Tag  # local import to avoid cycles
+        from app.schemas.products import Tag, ProductTag  # local import to avoid cycles
 
         tags = [
             r[0]
             for r in self.db.execute(
                 select(Tag.name)
                 .select_from(Tag)
-                .join_from(Tag, Product)
-                .where(Product.id == product_id)
+                .join(ProductTag, ProductTag.tag_id == Tag.id)
+                .where(ProductTag.product_id == product_id)
             )
         ]
         return ProductMeta(

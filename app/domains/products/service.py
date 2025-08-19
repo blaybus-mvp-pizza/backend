@@ -27,20 +27,17 @@ class ProductService:
         :return: ProductListItem 리스트
         """
         offset = (page - 1) * size
-        rows = self.products.ending_soon_products(limit=size, offset=offset)
-        return rows_to_product_items(rows)
+        return self.products.ending_soon_products(limit=size, offset=offset)
 
     def recommended(self, *, page: int, size: int) -> List[ProductListItem]:
         """MD 추천 상품 조회 (페이지네이션)"""
         offset = (page - 1) * size
-        rows = self.products.recommended_products(limit=size, offset=offset)
-        return rows_to_product_items(rows)
+        return self.products.recommended_products(limit=size, offset=offset)
 
     def newest(self, *, page: int, size: int) -> List[ProductListItem]:
         """신규 상품 조회 (페이지네이션)"""
         offset = (page - 1) * size
-        rows = self.products.new_products(limit=size, offset=offset)
-        return rows_to_product_items(rows)
+        return self.products.new_products(limit=size, offset=offset)
 
     def stores_recent(
         self, *, page: int, stores: int, size: int
@@ -61,7 +58,7 @@ class ProductService:
                         description=store.description,
                         sales_description=store.sales_description,
                     ),
-                    products=rows_to_product_items(rows),
+                    products=rows,
                 )
             )
         return result
@@ -69,17 +66,7 @@ class ProductService:
     def store_list(self, *, page: int, size: int) -> List[StoreMeta]:
         """스토어 목록 조회 (간략 메타)"""
         offset = (page - 1) * size
-        rows = self.products.store_list(limit=size, offset=offset)
-        return [
-            StoreMeta(
-                store_id=r[0],
-                image_url=r[1],
-                name=r[2],
-                description=None,
-                sales_description=None,
-            )
-            for r in rows
-        ]
+        return self.products.store_list(limit=size, offset=offset)
 
     def store_meta(self, *, store_id: int) -> StoreMeta:
         """스토어 메타데이터 상세 조회"""
@@ -128,13 +115,17 @@ class ProductService:
     def product_bids(self, *, product_id: int, page: int, size: int):
         """상품의 입찰 내역 조회 (페이지네이션)"""
         offset = (page - 1) * size
-        return self.auctions.list_bids_by_product(product_id, limit=size, offset=offset)
+        items, _total = self.auctions.list_bids_by_product(
+            product_id, limit=size, offset=offset
+        )
+        return items
 
     def product_similar(
         self, *, product_id: int, page: int, size: int
     ) -> List[ProductListItem]:
         """같은 스토어 내 유사 상품 조회 (페이지네이션)"""
         offset = (page - 1) * size
-        return self.auctions.similar_products_in_same_store(
+        items, _total = self.auctions.similar_products_in_same_store(
             product_id, limit=size, offset=offset
         )
+        return items
