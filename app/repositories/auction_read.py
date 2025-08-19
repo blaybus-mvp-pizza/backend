@@ -1,6 +1,6 @@
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, desc, and_
+from sqlalchemy import select, func, desc, and_, distinct
 from app.schemas.auctions import Auction, Bid
 from app.schemas.products import Product, ProductImage
 from app.schemas.stores import PopupStore
@@ -194,3 +194,18 @@ class AuctionReadRepository:
     def get_bid_by_auction_and_user(self, auction_id: int, user_id: int) -> Bid | None:
         stmt = select(Bid).where(Bid.auction_id == auction_id, Bid.user_id == user_id)
         return self.db.execute(stmt).scalar_one_or_none()
+
+    def list_distinct_bidder_user_ids(
+        self, auction_id: int, *, exclude_user_id: Optional[int] = None
+    ) -> List[int]:
+        """경매의 기존 입찰자 사용자 ID 목록을 중복 없이 조회
+
+        :param auction_id: 경매 ID
+        :param exclude_user_id: 제외할 사용자 ID(현재 입찰자/구매자 등)
+        :return: 사용자 ID 리스트
+        """
+        stmt = select(distinct(Bid.user_id)).where(Bid.auction_id == auction_id)
+        if exclude_user_id is not None:
+            stmt = stmt.where(Bid.user_id != exclude_user_id)
+        rows = self.db.execute(stmt).all()
+        return [int(row[0]) for row in rows]

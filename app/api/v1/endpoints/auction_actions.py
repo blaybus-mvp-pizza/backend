@@ -9,7 +9,7 @@ from app.repositories.auction_read import AuctionReadRepository
 from app.repositories.auction_write import AuctionWriteRepository
 from app.repositories.order_write import OrderWriteRepository
 from app.repositories.payment_write import PaymentWriteRepository
-from app.repositories.notification_write import NotificationWriteRepository
+from app.domains.notifications.service import NotificationService
 from app.repositories.auction_deposit import AuctionDepositRepository
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 
@@ -22,7 +22,7 @@ def get_auction_service(db: Session = Depends(get_db)) -> AuctionService:
         OrderWriteRepository(db),
         PaymentWriteRepository(db),
         AuctionDepositRepository(db),
-        NotificationWriteRepository(db),
+        NotificationService(db),
     )
 
 
