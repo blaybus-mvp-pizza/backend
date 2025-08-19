@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.deps import get_db
-from app.core.auth_deps import get_current_user_id
+from app.core.auth_deps import get_current_user_id_verified
 from app.domains.auctions.service import AuctionService
 from app.domains.auctions.bid_result import BidResult
 from app.domains.auctions.buy_now_result import BuyNowResult
@@ -10,6 +10,7 @@ from app.repositories.auction_write import AuctionWriteRepository
 from app.repositories.order_write import OrderWriteRepository
 from app.repositories.payment_write import PaymentWriteRepository
 from app.repositories.notification_write import NotificationWriteRepository
+from app.repositories.auction_deposit import AuctionDepositRepository
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 
 
@@ -20,6 +21,7 @@ def get_auction_service(db: Session = Depends(get_db)) -> AuctionService:
         AuctionWriteRepository(db),
         OrderWriteRepository(db),
         PaymentWriteRepository(db),
+        AuctionDepositRepository(db),
         NotificationWriteRepository(db),
     )
 
@@ -41,6 +43,20 @@ class AuctionAPI:
                     "content": {
                         "application/json": {
                             "examples": {
+                                "BID_ALREADY_EXISTS": {
+                                    "summary": "이미 입찰한 경매",
+                                    "value": {
+                                        "code": "BID_ALREADY_EXISTS",
+                                        "message": "이미 입찰한 경매입니다.",
+                                    },
+                                },
+                                "AUCTION_NOT_RUNNING": {
+                                    "summary": "경매 진행 중이 아님",
+                                    "value": {
+                                        "code": "AUCTION_NOT_RUNNING",
+                                        "message": "경매가 진행 중이 아닙니다.",
+                                    },
+                                },
                                 "AUCTION_NOT_FOUND": {
                                     "summary": "경매 없음",
                                     "value": {
@@ -66,10 +82,12 @@ class AuctionAPI:
             auction_id: int,
             amount: float,
             service: AuctionService = Depends(get_auction_service),
-            user_id: int = Depends(get_current_user_id),
+            user_id: int = Depends(get_current_user_id_verified),
         ):
+            # normalize amount to float explicitly
+            print('request ', auction_id)
             return service.place_bid(
-                auction_id=auction_id, amount=amount, user_id=user_id
+                auction_id=auction_id, amount=float(amount), user_id=user_id
             )
 
         @self.router.post(
@@ -109,7 +127,7 @@ class AuctionAPI:
         async def buy_now(
             auction_id: int,
             service: AuctionService = Depends(get_auction_service),
-            user_id: int = Depends(get_current_user_id),
+            user_id: int = Depends(get_current_user_id_verified),
         ):
             return service.buy_now(auction_id=auction_id, user_id=user_id)
 

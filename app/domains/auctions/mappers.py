@@ -22,17 +22,18 @@ def row_to_auction_info(row) -> AuctionInfo:
         min_bid_price=float(m["min_bid_price"]),
         deposit_amount=float(m.get("deposit_amount", 0) or 0),
         bidder_count=int(m["bidder_count"]) if m.get("bidder_count") is not None else 0,
+        status=m.get("status", "SCHEDULED"),
     )
 
 
 def rows_to_bid_items(rows: Iterable) -> List[BidItem]:
     items: List[BidItem] = []
     for r in rows:
-        user_id, amount, created_at = r[0], r[1], r[2]
+        user_id, amount, created_at, nickname, profile_image_url = r[0], r[1], r[2], r[3], r[4]
         items.append(
             BidItem(
                 user=UserBrief(
-                    id=int(user_id), name=f"user-{int(user_id)}", profile_image=None
+                    id=int(user_id), name=nickname, profile_image=profile_image_url
                 ),
                 bid_amount=float(amount),
                 bid_at=created_at.isoformat(),

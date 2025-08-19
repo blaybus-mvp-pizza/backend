@@ -13,3 +13,4 @@ class AuctionInfo(BaseModel):
     min_bid_price: float = Field(..., description="최소 입찰가")
     deposit_amount: float = Field(..., description="보증금")
     bidder_count: int = Field(..., description="입찰자 수")
+    status: str = Field(..., description="경매 상태: SCHEDULED|RUNNING|ENDED|CANCELLED")
