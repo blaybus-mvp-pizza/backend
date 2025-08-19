@@ -42,10 +42,10 @@ class UserService:
         provider_user_id: str,
         raw_profile_json: JSON,
     ) -> UserRead:
-        user = self.user_read.get_user_by_email(self.session, email)
+        user = self.user_read.get_user_by_email(email)
+        if user:
+            return UserRead.model_validate(user)
         with transactional(self.session):
-            if user:
-                return user
             user = self.user_write.create_user(
                 email=email,
                 nickname=nickname,
@@ -82,7 +82,6 @@ class UserService:
                     phone_number=user_data.phone_number
                 )
             )
-            print(verification.code6)
             if not verification or verification.verified_at is None:
                 raise BusinessError(
                     code=400, message="Phone number must be verified before updating"
