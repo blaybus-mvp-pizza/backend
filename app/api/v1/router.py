@@ -8,6 +8,7 @@ from app.api.v1.endpoints import (
     auction_actions,
     payments,
     users,
+    notifications,
 )
 
 api_router = APIRouter()
@@ -21,3 +22,4 @@ api_router.include_router(auction_actions.api, prefix="/auction", tags=["auction
 api_router.include_router(payments.api, prefix="/payments", tags=["payments"])
 api_router.include_router(auth.api, prefix="/auth", tags=["auth"])
 api_router.include_router(users.api, prefix="/users", tags=["users"])
+api_router.include_router(notifications.api, prefix="/notifications", tags=["notifications"])

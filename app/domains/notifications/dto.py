@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
+from datetime import datetime
 
 
 class NotifyRequest(BaseModel):
@@ -10,4 +11,24 @@ class NotifyRequest(BaseModel):
 
 
 class NotifyResult(BaseModel):
+    ok: bool = True
+
+
+class NotificationItem(BaseModel):
+    id: int
+    title: str
+    body: str
+    sent_at: datetime
+    status: str
+
+
+class NotificationListResult(BaseModel):
+    items: List[NotificationItem]
+
+
+class MarkReadRequest(BaseModel):
+    notification_ids: List[int]
+
+
+class MarkReadResult(BaseModel):
     ok: bool = True

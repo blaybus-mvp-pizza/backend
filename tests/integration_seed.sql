@@ -190,3 +190,15 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 
 
+
+
+
+
+
+
+
+
+
+#     status        enum ('QUEUED', 'SENT', 'FAILED') default 'SENT'            not null comment '상태',
+# enum -> varchar
+alter table notification modify column status varchar(20) not null default 'SENT';

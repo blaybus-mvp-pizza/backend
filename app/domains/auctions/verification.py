@@ -5,6 +5,7 @@ from app.repositories.auction_read import AuctionReadRepository
 from app.repositories.auction_write import AuctionWriteRepository
 from app.domains.auctions.bid_rules import BidRules
 from app.domains.auctions.enums import AuctionStatus
+from app.schemas.auctions import Auction
 
 
 class BidVerificator:
@@ -29,7 +30,7 @@ class BidVerificator:
         if bid:
             raise BusinessError(ErrorCode.BID_ALREADY_EXISTS, "이미 참여한 경매입니다.")
 
-    def ensure_auction_exists_and_running(self, auction_id: int):
+    def ensure_auction_exists_and_running(self, auction_id: int) -> Auction:
         auction = self.write.get_auction_by_id(auction_id)
 
         if not auction:
