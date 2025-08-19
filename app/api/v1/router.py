@@ -7,13 +7,17 @@ from app.api.v1.endpoints import (
     product_detail,
     auction_actions,
     payments,
+    users,
 )
 
 api_router = APIRouter()
 api_router.include_router(health.api, prefix="/health", tags=["health"])
 api_router.include_router(db_info.router, prefix="/db", tags=["db"])
-api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(auth.api, prefix="/auth", tags=["auth"])
+
 api_router.include_router(products.api, prefix="/products", tags=["products"])
 api_router.include_router(product_detail.api, prefix="/catalog", tags=["catalog"])
 api_router.include_router(auction_actions.api, prefix="/auction", tags=["auction"])
 api_router.include_router(payments.api, prefix="/payments", tags=["payments"])
+api_router.include_router(auth.api, prefix="/auth", tags=["auth"])
+api_router.include_router(users.api, prefix="/users", tags=["users"])

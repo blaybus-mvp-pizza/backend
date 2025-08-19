@@ -1,16 +1,40 @@
+from cmath import phase
 from pydantic import BaseModel
 
 
 class UserCreate(BaseModel):
     email: str
-    username: str
-    password: str
+    nickname: str
 
 
 class UserRead(BaseModel):
     id: int
     email: str
-    username: str
+    nickname: str
+    phone_number: str | None = None
+    profile_image_url: str | None = None
+    is_phone_verified: bool = False
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "from_attributes": True,
+    }
+
+
+class UserUpdate(BaseModel):
+    nickname: str
+    phone_number: str | None = None
+    profile_image_url: str | None = None
+    is_phone_verified: bool = False
+
+    model_config = {
+        "from_attributes": True,
+    }
+
+
+class SendSMSResult(BaseModel):
+    success: bool
+    expires_at: str | None = None
+
+
+class PhoneVerificationResult(BaseModel):
+    success: bool
