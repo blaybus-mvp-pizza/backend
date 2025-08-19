@@ -10,6 +10,7 @@ from app.repositories.auction_read import AuctionReadRepository
 from app.repositories.auction_write import AuctionWriteRepository
 from app.repositories.order_write import OrderWriteRepository
 from app.repositories.payment_write import PaymentWriteRepository
+from app.repositories.auction_deposit import AuctionDepositRepository
 from app.repositories.notification_write import NotificationWriteRepository
 from app.domains.orders.service import OrderService
 
@@ -22,6 +23,7 @@ class AuctionService:
         auctions_write: AuctionWriteRepository,
         orders: OrderWriteRepository,
         payments: PaymentWriteRepository,
+        deposits: AuctionDepositRepository,
         notifications: NotificationWriteRepository,
     ):
         self.session = session
@@ -29,6 +31,7 @@ class AuctionService:
         self.auctions_write = auctions_write
         self.orders = orders
         self.payments = payments
+        self.deposits = deposits
         self.notifications = notifications
 
     def place_bid(self, *, auction_id: int, amount: float, user_id: int) -> BidResult:
@@ -40,15 +43,32 @@ class AuctionService:
         """
         verifier = BidVerificator(self.session)
         with transactional(self.session):
+            print("검증")
             auction = verifier.ensure_auction_exists_and_running(auction_id)
             deposit_amount = verifier.ensure_amount_allowed(
                 auction_product_id=auction.product_id, amount=amount
             )
+            verifier.ensure_not_already_bid(auction_id, user_id)
+            print("검증완료")
             if deposit_amount > 0:
-                self.payments.create_payment(
+                payment = self.payments.create_payment(
                     user_id=user_id,
-                    amount=deposit_amount,
+                    amount=float(deposit_amount),
                     provider="dummy",
+                    status="PAID",
+                )
+                self.payments.create_payment_log(
+                    payment_id=payment.id,
+                    provider="dummy",
+                    amount=float(deposit_amount),
+                    status="PAID",
+                    log_type="REQUEST",
+                )
+                self.deposits.create(
+                    auction_id=auction_id,
+                    user_id=user_id,
+                    payment_id=payment.id,
+                    amount=float(deposit_amount),
                     status="PAID",
                 )
             bid = self.auctions_write.place_bid(auction_id, user_id, amount)

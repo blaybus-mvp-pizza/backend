@@ -14,6 +14,7 @@ class AuctionWriteRepository:
         return self.db.execute(stmt).scalar_one() > 0
 
     def get_auction_by_id(self, auction_id: int) -> Auction | None:
+        print('get auction', auction_id)
         return self.db.execute(
             select(Auction).where(Auction.id == auction_id)
         ).scalar_one_or_none()

@@ -103,7 +103,9 @@ def test_store_and_products_listing():
     r = client.get(f"{API}/products/stores/recent")
     assert r.status_code == 200
     body = r.json()
-    assert isinstance(body, list) and len(body) >= 1
+    assert isinstance(body, dict)
+    assert set(["items", "page", "size", "total"]).issubset(body.keys())
+    assert isinstance(body["items"], list) and len(body["items"]) >= 1
     # store meta
     r2 = client.get(f"{API}/catalog/stores/2001/meta")
     assert r2.status_code == 200
@@ -111,7 +113,10 @@ def test_store_and_products_listing():
     # products by store (latest)
     r3 = client.get(f"{API}/catalog/stores/2001/products?sort=latest&page=1&size=10")
     assert r3.status_code == 200
-    assert isinstance(r3.json(), list)
+    j = r3.json()
+    assert isinstance(j, dict)
+    assert set(["items", "page", "size", "total"]).issubset(j.keys())
+    assert isinstance(j["items"], list)
 
 
 def test_product_meta_and_auction_info():
@@ -132,10 +137,16 @@ def test_product_meta_and_auction_info():
 def test_list_bids_and_similar():
     r = client.get(f"{API}/catalog/products/3001/bids")
     assert r.status_code == 200
-    assert isinstance(r.json(), list)
+    j = r.json()
+    assert isinstance(j, dict)
+    assert set(["items", "page", "size", "total"]).issubset(j.keys())
+    assert isinstance(j["items"], list)
     r2 = client.get(f"{API}/catalog/products/3001/similar")
     assert r2.status_code == 200
-    assert isinstance(r2.json(), list)
+    j2 = r2.json()
+    assert isinstance(j2, dict)
+    assert set(["items", "page", "size", "total"]).issubset(j2.keys())
+    assert isinstance(j2["items"], list)
 
 
 def test_place_bid_requires_auth_and_rules():

@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Optional flags
     FEATURE_LLM: bool = False
     LOG_LEVEL: str = "INFO"
+    # SQLAlchemy
+    SQL_ECHO: bool = False
 
     # JWT
     SECRET_KEY: str = "change-me"  # set in .env for prod

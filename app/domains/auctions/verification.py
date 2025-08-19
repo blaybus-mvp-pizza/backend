@@ -13,8 +13,25 @@ class BidVerificator:
         self.read = AuctionReadRepository(db)
         self.write = AuctionWriteRepository(db)
 
+    # 경매가 활성 상태인지 확인
+    def ensure_auction_running(self, auction_id: int):
+        auction = self.write.get_auction_by_id(auction_id)
+
+        if not auction:
+            print('ensure_auction_running',auction)
+            raise BusinessError(ErrorCode.AUCTION_NOT_FOUND, "경매를 찾을 수 없습니다.")
+        if auction.status != AuctionStatus.RUNNING.value:
+            raise BusinessError(ErrorCode.AUCTION_NOT_RUNNING, "경매가 활성 상태가 아닙니다.")
+        return auction
+
+    def ensure_not_already_bid(self, auction_id: int, user_id: int):
+        bid = self.read.get_bid_by_auction_and_user(auction_id, user_id)
+        if bid:
+            raise BusinessError(ErrorCode.BID_ALREADY_EXISTS, "이미 참여한 경매입니다.")
+
     def ensure_auction_exists_and_running(self, auction_id: int):
         auction = self.write.get_auction_by_id(auction_id)
+
         if not auction:
             raise BusinessError(ErrorCode.AUCTION_NOT_FOUND, "경매를 찾을 수 없습니다.")
         if auction.status != AuctionStatus.RUNNING.value:
