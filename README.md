@@ -127,3 +127,27 @@ docker compose up -d --build
 ```
 - 서비스: `mysql`, `adminer(8080)`, `api(8000)`
 - API 컨테이너는 `DATABASE_URL`을 env로 주입해 사용
+
+
+## 배포
+- main branch 머지 시 자동으로 배포됩니다.
+- 대상: Ubuntu EC2(dev), 포트 8000 노출
+- 방식: GitHub Actions가 EC2에 SSH 접속 → `infra/dev`에서 `docker compose up -d --build` 실행(소스 기반 빌드)
+
+### CI 설정
+- 파일: `.github/workflows/docker-publish.yml`
+- 트리거: `main` push(수동 실행도 가능)
+- 필요한 Secrets
+  - `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`(이미지 빌드/푸시용)
+  - `EC2_HOST`(예: 13.125.244.16), `EC2_USER`(예: ubuntu), `EC2_SSH_KEY`(PEM 전문)
+- 동작 요약
+  1) 이미지 빌드/푸시(옵션: Docker Hub)
+  2) EC2 SSH → `~/app` 최신화 → `infra/dev`에서 `docker compose up -d --build`
+
+### 수동 배포(옵션)
+```bash
+ssh -i <key.pem> ubuntu@<EC2_IP>
+cd ~/app
+git fetch --all && git reset --hard origin/main
+cd infra/dev && docker compose up -d --build
+```
