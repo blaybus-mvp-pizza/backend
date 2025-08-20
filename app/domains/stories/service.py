@@ -2,6 +2,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from app.core.errors import BusinessError
+from app.domains.common.paging import Page, paginate
 from app.domains.stories.story_list_item import StoryListItem
 from app.domains.stories.story_meta import StoryMeta
 from app.repositories.story_read import StoryReadRepository
@@ -12,13 +13,13 @@ class StoryService:
         self.db = db
         self.story_read = StoryReadRepository(db)
 
-    def get_stories(self, *, page: int, size: int) -> List[StoryListItem]:
+    def get_stories(self, *, page: int, size: int) -> Page[StoryListItem]:
         """스토리 목록 조회 (페이지네이션)"""
         offset = (page - 1) * size
-        stories = self.story_read.recent_story_items_with_product_brief(
+        stories, total = self.story_read.recent_story_items_with_product_brief(
             limit=size, offset=offset
         )
-        return stories
+        return paginate(stories, page, size, total)
 
     def get_story_meta(self, story_id: int) -> StoryMeta | None:
         """스토리 상세 조회"""

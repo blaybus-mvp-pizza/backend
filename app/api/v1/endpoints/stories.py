@@ -4,6 +4,7 @@ from typing import List
 
 from app.core.deps import get_db
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
+from app.domains.common.paging import Page
 from app.domains.stories.service import StoryService
 from app.domains.stories.story_list_item import StoryListItem
 from app.domains.stories.story_meta import StoryMeta
@@ -19,7 +20,7 @@ class StoryAPI:
 
         @self.router.get(
             "/",
-            response_model=List[StoryListItem],
+            response_model=Page[StoryListItem],
             summary="스토리 목록 조회",
             description="스토리 목록을 페이징 조회합니다.",
             response_description="스토리 리스트",
