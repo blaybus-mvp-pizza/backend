@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     product_detail,
     auction_actions,
     payments,
+    stories,
     users,
 )
 
@@ -21,3 +22,4 @@ api_router.include_router(auction_actions.api, prefix="/auction", tags=["auction
 api_router.include_router(payments.api, prefix="/payments", tags=["payments"])
 api_router.include_router(auth.api, prefix="/auth", tags=["auth"])
 api_router.include_router(users.api, prefix="/users", tags=["users"])
+api_router.include_router(stories.api, prefix="/stories", tags=["stories"])
