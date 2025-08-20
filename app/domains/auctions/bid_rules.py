@@ -23,7 +23,7 @@ class BidRules:
 
     @classmethod
     def make_bid_steps(
-        cls, current: float, buy_now: Optional[float], count: int = 4
+        cls, current: float, buy_now: Optional[float], count: int = 15
     ) -> List[float]:
         if current <= 0:
             return []

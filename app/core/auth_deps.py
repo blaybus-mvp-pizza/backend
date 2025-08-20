@@ -1,6 +1,9 @@
-from fastapi import Header, HTTPException, status
+from fastapi import Header, HTTPException, status, Depends
 from typing import Optional
+from sqlalchemy.orm import Session
 from app.core.security import decode_access_token
+from app.core.deps import get_db
+from app.repositories.user_read import UserReadRepository
 
 
 def get_current_user_id(authorization: Optional[str] = Header(None)) -> int:
@@ -24,3 +27,20 @@ def get_current_user_id(authorization: Optional[str] = Header(None)) -> int:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
         )
+
+
+def get_current_user_id_verified(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+) -> int:
+    """Resolve the current user id from the Authorization header and ensure the user exists.
+
+    Returns 401 if the token is missing/invalid or if the user does not exist.
+    """
+    user_id = get_current_user_id(authorization)
+    user = UserReadRepository(db).get_user_by_id(user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
+        )
+    return user_id

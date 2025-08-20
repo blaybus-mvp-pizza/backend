@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.deps import get_db
-from app.core.auth_deps import get_current_user_id
+from app.core.auth_deps import get_current_user_id_verified
 from app.domains.payments.service import PaymentService
 from app.domains.payments.dto import (
     ChargeRequest,
@@ -35,7 +35,7 @@ class PaymentsAPI:
         async def charge(
             req: ChargeRequest,
             service: PaymentService = Depends(get_payment_service),
-            user_id: int = Depends(get_current_user_id),
+            user_id: int = Depends(get_current_user_id_verified),
         ):
             req.user_id = user_id
             return service.charge(req)

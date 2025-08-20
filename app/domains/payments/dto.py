@@ -3,7 +3,7 @@ from typing import Optional
 
 
 class ChargeRequest(BaseModel):
-    user_id: int = Field(..., description="결제 사용자 ID (토큰에서 주입)")
+    user_id: Optional[int] = Field(None, description="결제 사용자 ID (토큰에서 주입)")
     amount: float = Field(..., description="결제 금액")
     provider: str = Field("dummy", description="결제 제공자 식별자")
     note: Optional[str] = Field(None, description="비고")
