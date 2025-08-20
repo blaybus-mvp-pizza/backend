@@ -128,6 +128,7 @@ docker compose up -d --build
 - 서비스: `mysql`, `adminer(8080)`, `api(8000)`
 - API 컨테이너는 `DATABASE_URL`을 env로 주입해 사용
 
+- ssh 에서 위치 : ~/app/infra/dev/docker-compose.yml
 
 ## 배포
 - main branch 머지 시 자동으로 배포됩니다.
@@ -151,3 +152,4 @@ cd ~/app
 git fetch --all && git reset --hard origin/main
 cd infra/dev && docker compose up -d --build
 ```
+

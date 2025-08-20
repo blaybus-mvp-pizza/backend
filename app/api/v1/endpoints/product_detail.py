@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from app.domains.common.paging import Page
 
 from app.core.deps import get_db
 from app.domains.products.product_list_item import ProductListItem
@@ -38,7 +39,7 @@ class CatalogAPI:
 
         @self.router.get(
             "/stores/{store_id}/products",
-            response_model=List[ProductListItem],
+            response_model=Page[ProductListItem],
             summary="스토어 상품 목록",
             description="특정 스토어의 상품을 정렬/페이징하여 조회합니다.",
             response_description="상품 리스트",
@@ -57,9 +58,22 @@ class CatalogAPI:
             sort: str = Query(
                 "latest", description="정렬: recommended|popular|latest|ending"
             ),
+            status: str = Query("RUNNING", description="상태 ALL|RUNNING|ENDED"),
+            bidders: str = Query("ALL", description="입찰자수 ALL|LE_10|BT_10_20|GE_20"),
+            price_bucket: str = Query("ALL", description="가격 ALL|LT_10000|BT_10000_30000|BT_30000_50000|BT_50000_150000|BT_150000_300000|BT_300000_500000|CUSTOM"),
+            price_min: Optional[float] = Query(None, description="CUSTOM 최소 가격"),
+            price_max: Optional[float] = Query(None, description="CUSTOM 최대 가격"),
         ):
             return service.products_by_store(
-                store_id=store_id, sort=sort, page=page, size=size
+                store_id=store_id,
+                sort=sort,
+                page=page,
+                size=size,
+                status=status,
+                bidders=bidders,
+                price_bucket=price_bucket,
+                price_min=price_min,
+                price_max=price_max,
             )
 
         @self.router.get(
@@ -96,7 +110,7 @@ class CatalogAPI:
 
         @self.router.get(
             "/products/{product_id}/bids",
-            response_model=List[BidItem],
+            response_model=Page[BidItem],
             summary="상품 입찰 내역",
             description="상품의 입찰 내역을 페이징 조회합니다.",
             response_description="입찰 리스트",
@@ -115,7 +129,7 @@ class CatalogAPI:
 
         @self.router.get(
             "/products/{product_id}/similar",
-            response_model=List[ProductListItem],
+            response_model=Page[ProductListItem],
             summary="유사 상품",
             description="동일 스토어 기준 유사 상품을 조회합니다.",
             response_description="상품 리스트",
@@ -125,8 +139,24 @@ class CatalogAPI:
             service: ProductService = Depends(get_product_service),
             page: int = Query(1, ge=1, description="페이지 번호(1부터)"),
             size: int = Query(4, ge=1, le=100, description="페이지 크기(기본 4)"),
+            sort: str = Query("latest", description="정렬 recommended|popular|latest|ending"),
+            status: str = Query("ALL", description="상태 ALL|RUNNING|ENDED"),
+            bidders: str = Query("ALL", description="입찰자수 ALL|LE_10|BT_10_20|GE_20"),
+            price_bucket: str = Query("ALL", description="가격 ALL|LT_10000|BT_10000_30000|BT_30000_50000|BT_50000_150000|BT_150000_300000|BT_300000_500000|CUSTOM"),
+            price_min: Optional[float] = Query(None, description="CUSTOM 최소 가격"),
+            price_max: Optional[float] = Query(None, description="CUSTOM 최대 가격"),
         ):
-            return service.product_similar(product_id=product_id, page=page, size=size)
+            return service.product_similar(
+                product_id=product_id,
+                page=page,
+                size=size,
+                sort=sort,
+                status=status,
+                bidders=bidders,
+                price_bucket=price_bucket,
+                price_min=price_min,
+                price_max=price_max,
+            )
 
 
 api = CatalogAPI().router
