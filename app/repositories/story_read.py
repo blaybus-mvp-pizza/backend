@@ -1,4 +1,5 @@
-from sqlalchemy import select, desc
+from typing import Tuple, List
+from sqlalchemy import func, select, desc
 from sqlalchemy.orm import Session
 
 from app.domains.stories.mappers import rows_to_story_items
@@ -36,6 +37,13 @@ class StoryReadRepository:
             .scalar_subquery()
         )
         return rep_img
+
+    def _count_recent_stories(self) -> int:
+        stmt = select(func.count(Story.id)).join(
+            Product, Product.id == Story.product_id
+        )
+        total = self.db.execute(stmt).scalar_one()
+        return int(total)
 
     def get_story_meta_with_product_brief(self, story_id: int) -> StoryMeta | None:
         story = self.db.execute(
@@ -79,7 +87,7 @@ class StoryReadRepository:
         self,
         limit: int = 9,
         offset: int = 0,
-    ) -> list[StoryListItem]:
+    ) -> Tuple[List[StoryListItem], int]:
         product_rep_img = self._product_rep_img_select()
         story_rep_img = self._story_rep_img_select()
         stmt = (
@@ -100,5 +108,5 @@ class StoryReadRepository:
             .offset(offset)
         )
         rows = self.db.execute(stmt)
-        # print(list(rows))
-        return rows_to_story_items(rows)
+        total = self._count_recent_stories()
+        return rows_to_story_items(rows), int(total)
