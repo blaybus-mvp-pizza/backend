@@ -10,6 +10,7 @@ from app.domains.notifications.dto import (
     MarkReadResult,
     UnreadCountResult,
 )
+from app.schemas.products import ProductImage
 
 
 class NotificationService:
@@ -25,22 +26,34 @@ class NotificationService:
         :return: NotifyResult(ok)
         """
         self.repo.create(
-            user_id=req.user_id, title=req.title, body=req.body, channel=req.channel
+            user_id=req.user_id, title=req.title, body=req.body, channel=req.channel, product_id=req.product_id
         )
         return NotifyResult(ok=True)
 
     def list_my_notifications(self, *, user_id: int, limit: int = 50) -> NotificationListResult:
         notifications = self.read.list_by_user(user_id=user_id, limit=limit)
-        items = [
-            NotificationItem(
-                id=int(n.id),
-                title=n.title or "",
-                body=n.body or "",
-                sent_at=n.sent_at,
-                status=n.status,
+        items = []
+        for n in notifications:
+            image_url = None
+            if n.product_id:
+                row = self.db.execute(
+                    select(ProductImage.image_url)
+                    .where(ProductImage.product_id == n.product_id)
+                    .order_by(ProductImage.sort_order.asc())
+                    .limit(1)
+                ).first()
+                if row:
+                    image_url = row[0]
+            items.append(
+                NotificationItem(
+                    id=int(n.id),
+                    title=n.title or "",
+                    body=n.body or "",
+                    sent_at=n.sent_at,
+                    status=n.status,
+                    image_url=image_url,
+                )
             )
-            for n in notifications
-        ]
         return NotificationListResult(items=items)
 
     def mark_read(self, req: MarkReadRequest) -> MarkReadResult:

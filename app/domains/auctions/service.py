@@ -15,6 +15,7 @@ from app.repositories.auction_deposit import AuctionDepositRepository
 from app.domains.notifications.service import NotificationService
 from app.domains.notifications.dto import NotifyRequest
 from app.domains.orders.service import OrderService
+from app.schemas.auctions import AuctionOffer
 
 
 class AuctionService:
@@ -87,7 +88,7 @@ class AuctionService:
 
         # 1) 현재 최고 입찰자 알림 (본인)
         self.notifications.send(
-            NotifyRequest(user_id=user_id, title=f"{title} 현재 최고 입찰자입니다.", body="")
+            NotifyRequest(user_id=user_id, title=f"{title} 현재 최고 입찰자입니다.", body="", product_id=auction.product_id)
         )
 
         # 2) 이전 입찰자들에게 추월 알림
@@ -101,6 +102,7 @@ class AuctionService:
                     user_id=previous_user_id,
                     title=f"{title} 다른 사용자가 {formatted_amount}으로 추월했어요.",
                     body="",
+                    product_id=auction.product_id,
                 )
             )
 
@@ -143,11 +145,66 @@ class AuctionService:
                         user_id=previous_user_id,
                         title=f"{title} 경매가 즉시구매로 종료됐어요.",
                         body="",
+                        product_id=auction.product_id,
                     )
                 )
 
             # 4) 즉시구매자에게 주문 접수 알림
             self.notifications.send(
-                NotifyRequest(user_id=user_id, title=f"{title} 주문이 접수됐어요.", body="")
+                NotifyRequest(user_id=user_id, title=f"{title} 주문이 접수됐어요.", body="", product_id=auction.product_id)
             )
         return BuyNowResult(status="ORDER_PLACED", payment_id=order_result.payment_id)
+
+    def finalize_winner_and_charge(self, *, auction_id: int) -> BuyNowResult:
+        """낙찰 처리: 현재 최고 입찰자를 낙찰자로 확정하고 자동 결제/오퍼 생성.
+
+        - ENDED 상태에서만 허용
+        - 최고 입찰자 선택 → Payment 승인 → AuctionOffer 생성
+        """
+        with transactional(self.session):
+            auction = self.auctions_write.get_auction_by_id(auction_id)
+            if not auction:
+                raise BusinessError(ErrorCode.AUCTION_NOT_FOUND, "경매를 찾을 수 없습니다.")
+            if auction.status != AuctionStatus.ENDED.value:
+                raise BusinessError(
+                    ErrorCode.INVALID_AUCTION_STATUS, "종료된 경매만 낙찰 처리 가능합니다."
+                )
+            # 최고 입찰자 조회
+            from sqlalchemy import select
+            winner_row = self.session.execute(
+                select(Bid)
+                .where(Bid.auction_id == auction_id)
+                .order_by(Bid.amount.desc(), Bid.created_at.desc())
+                .limit(1)
+            ).first()
+            if not winner_row:
+                raise BusinessError(ErrorCode.WINNER_NOT_FOUND, "낙찰자를 찾을 수 없습니다.")
+            winner_bid: Bid = winner_row[0]
+
+            # 결제 승인(즉시구매가 없으면 최고가로 결제)
+            unit_price = float(winner_bid.amount)
+            order_service = OrderService(self.session, self.orders, self.payments)
+            order_result = order_service.checkout_buy_now(
+                user_id=winner_bid.user_id,
+                product_id=auction.product_id,
+                unit_price=unit_price,
+                provider="dummy",
+            )
+
+            # 오퍼 생성
+            offer = AuctionOffer(
+                auction_id=auction_id,
+                bid_id=winner_bid.id,
+                user_id=winner_bid.user_id,
+                rank_order=1,
+                status="ACCEPTED",
+                order_id=order_result.order_id,
+                expires_at=winner_bid.created_at,  # placeholder; no expiry for auto-accept
+            )
+            self.session.add(offer)
+            # 알림
+            title = f"{auction.product.store.name if auction.product and auction.product.store else ''} {auction.product.name if auction.product else ''}"
+            self.notifications.send(
+                NotifyRequest(user_id=winner_bid.user_id, title=f"{title} 낙찰되었습니다.", body="", product_id=auction.product_id)
+            )
+            return BuyNowResult(status="ORDER_PLACED", payment_id=order_result.payment_id)

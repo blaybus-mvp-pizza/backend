@@ -12,6 +12,7 @@ from app.repositories.payment_write import PaymentWriteRepository
 from app.domains.notifications.service import NotificationService
 from app.repositories.auction_deposit import AuctionDepositRepository
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
+from app.domains.auctions.service import AuctionService as AuctionDomainService
 
 
 def get_auction_service(db: Session = Depends(get_db)) -> AuctionService:
@@ -130,6 +131,8 @@ class AuctionAPI:
             user_id: int = Depends(get_current_user_id_verified),
         ):
             return service.buy_now(auction_id=auction_id, user_id=user_id)
+
+        # finalize endpoint moved to admin router
 
 
 api = AuctionAPI().router
