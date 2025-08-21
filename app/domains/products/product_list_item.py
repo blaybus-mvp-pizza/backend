@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 
 class ProductListItem(BaseModel):
@@ -10,3 +10,4 @@ class ProductListItem(BaseModel):
     buy_now_price: Optional[float] = Field(None, description="즉시구매가")
     representative_image: Optional[str] = Field(None, description="대표 이미지 URL")
     auction_ends_at: Optional[str] = Field(None, description="경매 종료 일시(ISO8601)")
+    labels: List[str] = Field(default_factory=list, description="상품 라벨 목록")

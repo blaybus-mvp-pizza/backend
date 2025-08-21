@@ -181,6 +181,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bidder_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -249,6 +251,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bid_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -316,6 +320,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bidder_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -393,6 +399,8 @@ class ProductReadRepository:
                     Auction.buy_now_price.label("buy_now_price"),
                     rep_img.label("representative_image"),
                     Auction.ends_at.label("auction_ends_at"),
+                    bidder_count.label("bidder_count"),
+                    Product.created_at.label("product_created_at"),
                 )
                 .join(PopupStore, PopupStore.id == Product.popup_store_id)
                 .join(Auction, Auction.product_id == Product.id)
@@ -491,6 +499,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bid_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -562,6 +572,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.starts_at.label("auction_ends_at"),
+                bidder_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
