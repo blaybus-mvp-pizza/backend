@@ -1,6 +1,6 @@
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, desc, and_, distinct
+from sqlalchemy import select, func, desc, and_, distinct, or_
 from app.schemas.auctions import Auction, Bid
 from app.schemas.products import Product, ProductImage
 from app.schemas.stores import PopupStore
@@ -82,6 +82,7 @@ class AuctionReadRepository:
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         sort: str = "latest",
+        q: Optional[str] = None,
     ) -> Tuple[List[ProductListItem], int]:
         rep_img = (
             select(ProductImage.image_url)
@@ -153,6 +154,16 @@ class AuctionReadRepository:
                     stmt = stmt.where(price_expr >= price_min)
                 if price_max is not None:
                     stmt = stmt.where(price_expr < price_max)
+            # keyword q
+            if q:
+                like = f"%{q}%"
+                stmt = stmt.where(
+                    or_(
+                        Product.name.like(like),
+                        Product.summary.like(like),
+                        Product.description.like(like),
+                    )
+                )
             return stmt
 
         stmt = (

@@ -8,6 +8,7 @@ from app.domains.notifications.dto import (
     NotificationItem,
     MarkReadRequest,
     MarkReadResult,
+    UnreadCountResult,
 )
 
 
@@ -57,3 +58,7 @@ class NotificationService:
         self.db.execute(stmt)
         self.db.commit()
         return MarkReadResult(ok=True)
+
+    def unread_count(self, *, user_id: int) -> UnreadCountResult:
+        cnt = self.read.count_unread_by_user(user_id=user_id)
+        return UnreadCountResult(count=cnt)
