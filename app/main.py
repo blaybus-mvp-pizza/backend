@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.v1.router import api_router
+from app.api.admin.v1.router import admin_api_router
 from app.db.session import Base, engine
 from app.core.errors import (
     business_error_handler,
@@ -36,6 +37,8 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
+if settings.ADMIN_API_STR:
+    app.include_router(admin_api_router, prefix=settings.ADMIN_API_STR)
 
 
 @app.get("/")

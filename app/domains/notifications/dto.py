@@ -8,6 +8,7 @@ class NotifyRequest(BaseModel):
     title: str
     body: str
     channel: str = "PUSH"
+    product_id: int | None = None
 
 
 class NotifyResult(BaseModel):
@@ -20,6 +21,7 @@ class NotificationItem(BaseModel):
     body: str
     sent_at: datetime
     status: str
+    image_url: str | None = None
 
 
 class NotificationListResult(BaseModel):

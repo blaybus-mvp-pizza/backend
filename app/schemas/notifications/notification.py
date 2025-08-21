@@ -9,6 +9,7 @@ class Notification(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger)
     channel = Column(String(20), nullable=False, default="PUSH")
+    product_id = Column(BigInteger)
     template_code = Column(String(80))
     title = Column(String(200))
     body = Column(String(1024))

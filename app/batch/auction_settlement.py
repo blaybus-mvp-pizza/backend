@@ -80,6 +80,7 @@ class AuctionSettlementBatch:
                 user_id=winner.user_id,
                 title=f"{auction.product.name}",
                 body="낙찰되었습니다. 결제를 진행해 주세요.",
+                product_id=auction.product_id,
             )
         )
         auction.status = AuctionStatus.ENDED.value
