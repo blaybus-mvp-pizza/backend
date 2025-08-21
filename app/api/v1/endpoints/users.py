@@ -1,9 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, Header, status
-from requests import Session
+from fastapi import APIRouter, Depends, HTTPException, Header, status, Query
+from sqlalchemy.orm import Session
 
 from app.core.deps import get_db
 from app.core.errors import BusinessError
 from app.core.security import require_auth
+from app.domains.common.paging import Page
+from app.domains.auctions.user_dto import UserAuctionDashboard, UserRelatedAuctionItem
+from app.domains.auctions.user_service import UserAuctionService
+from app.repositories.user_auction_read import UserAuctionReadRepository
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 from app.domains.users.models import (
     PhoneVerificationResult,
@@ -18,6 +22,10 @@ from app.repositories.user_write import UserWriteRepository
 
 def get_user_service(db: Session = Depends(get_db)) -> UserService:
     return UserService(db, UserReadRepository(db), UserWriteRepository(db))
+
+
+def get_user_auction_service(db: Session = Depends(get_db)) -> UserAuctionService:
+    return UserAuctionService(db, UserAuctionReadRepository(db))
 
 
 class UsersAPI:
@@ -104,6 +112,59 @@ class UsersAPI:
                 phone_number=phone_number,
                 code6=code6,
                 user_id=user_id,
+            )
+
+        @self.router.get(
+            "/me/auctions/dashboard",
+            response_model=UserAuctionDashboard,
+            summary="마이페이지 경매 대시보드 카운트",
+            description="로그인 사용자의 경매 참여 현황 카운트를 반환합니다.",
+        )
+        async def my_auction_dashboard(
+            user_id: int = Depends(require_auth),
+            service: UserAuctionService = Depends(get_user_auction_service),
+        ) -> UserAuctionDashboard:
+            return service.dashboard(user_id=user_id)
+
+        @self.router.get(
+            "/me/auctions",
+            response_model=Page[UserRelatedAuctionItem],
+            summary="마이페이지 관련 상품 조회",
+            description="로그인 사용자의 관련 상품(입찰/낙찰 등)을 페이징 조회합니다.",
+        )
+        async def my_related_auctions(
+            user_id: int = Depends(require_auth),
+            service: UserAuctionService = Depends(get_user_auction_service),
+            page: int = Query(1, ge=1),
+            size: int = Query(10, ge=1, le=100),
+            period: str = Query("1m", description="기간: 1m|3m|custom"),
+            startDate: str | None = Query(None, description="custom 시작일(ISO)"),
+            endDate: str | None = Query(None, description="custom 종료일(ISO)"),
+            q: str | None = Query(None, description="검색 키워드: 상품명 or 브랜드명"),
+        ) -> Page[UserRelatedAuctionItem]:
+            from datetime import datetime, timedelta, timezone
+            now = datetime.now(timezone.utc)
+            period_from = None
+            period_to = None
+            try:
+                if period == "1m":
+                    period_from = now - timedelta(days=30)
+                    period_to = now
+                elif period == "3m":
+                    period_from = now - timedelta(days=90)
+                    period_to = now
+                elif period == "custom" and startDate and endDate:
+                    period_from = datetime.fromisoformat(startDate)
+                    period_to = datetime.fromisoformat(endDate)
+            except Exception:
+                period_from, period_to = None, None
+            return service.list_related(
+                user_id=user_id,
+                page=page,
+                size=size,
+                period_from=period_from,
+                period_to=period_to,
+                keyword=q,
             )
 
 
