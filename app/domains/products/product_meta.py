@@ -4,13 +4,19 @@ from app.domains.products.store_meta import StoreMeta
 
 
 class ProductSpecs(BaseModel):
-    material: Optional[str] = Field(None, description="소재")
-    place_of_use: Optional[str] = Field(None, description="사용 장소")
-    width_cm: Optional[float] = Field(None, description="가로(cm)")
-    height_cm: Optional[float] = Field(None, description="세로(cm)")
-    tolerance_cm: Optional[float] = Field(None, description="오차(cm)")
-    edition_info: Optional[str] = Field(None, description="에디션 정보")
-    condition_note: Optional[str] = Field(None, description="컨디션/주의사항")
+    material: Optional[str] = Field(None, description="소재", example="Oak")
+    place_of_use: Optional[str] = Field(
+        None, description="사용 장소", example="Living Room"
+    )
+    width_cm: Optional[float] = Field(None, description="가로(cm)", example=45)
+    height_cm: Optional[float] = Field(None, description="세로(cm)", example=50)
+    tolerance_cm: Optional[float] = Field(None, description="오차(cm)", example=0.5)
+    edition_info: Optional[str] = Field(
+        None, description="에디션 정보", example="1st Edition"
+    )
+    condition_note: Optional[str] = Field(
+        None, description="컨디션/주의사항", example="미세 스크래치 존재 가능"
+    )
 
 
 class ProductMeta(BaseModel):

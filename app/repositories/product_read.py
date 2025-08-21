@@ -1,6 +1,13 @@
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc, and_, or_
+from sqlalchemy import select, func, desc, and_
+from app.domains.common.paging import Page
+from app.domains.products.enums import ProductAdminStatusFilter, StatusFilter
+from app.domains.products.admin_product import ProductAdminListItem, ProductAdminMeta
+from app.domains.products.admin_store import StoreAdminMeta
+from app.schemas.auctions.auction_offer import AuctionOffer
+from app.schemas.orders.order import Order
 from app.schemas.products import Product, ProductImage
 from app.schemas.stores import PopupStore
 from app.schemas.auctions import Auction, Bid
@@ -44,7 +51,9 @@ class ProductReadRepository:
         *,
         status: Optional[str] = None,  # ALL | RUNNING | ENDED
         bidders: Optional[str] = None,  # ALL | LE_10 | BT_10_20 | GE_20
-        price_bucket: Optional[str] = None,  # ALL | LT_10000 | BT_10000_30000 | BT_30000_50000 | BT_50000_150000 | BT_150000_300000 | BT_300000_500000 | CUSTOM
+        price_bucket: Optional[
+            str
+        ] = None,  # ALL | LT_10000 | BT_10000_30000 | BT_30000_50000 | BT_50000_150000 | BT_150000_300000 | BT_300000_500000 | CUSTOM
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         highest_bid_subq=None,
@@ -72,14 +81,26 @@ class ProductReadRepository:
             if bidders == "LE_10":
                 stmt = stmt.where(bidder_count_subq <= 10)
             elif bidders == "BT_10_20":
-                stmt = stmt.where(and_(bidder_count_subq >= 10, bidder_count_subq <= 20))
+                stmt = stmt.where(
+                    and_(bidder_count_subq >= 10, bidder_count_subq <= 20)
+                )
             elif bidders == "GE_20":
                 stmt = stmt.where(bidder_count_subq >= 20)
 
         # Price filter using coalesce(current_highest_bid, Auction.start_price)
-        price_expr = func.coalesce(highest_bid_subq if highest_bid_subq is not None else (
-            select(func.max(Bid.amount)).where(Bid.auction_id == Auction.id).correlate(Auction).scalar_subquery()
-        ), Auction.start_price)
+        price_expr = func.coalesce(
+            (
+                highest_bid_subq
+                if highest_bid_subq is not None
+                else (
+                    select(func.max(Bid.amount))
+                    .where(Bid.auction_id == Auction.id)
+                    .correlate(Auction)
+                    .scalar_subquery()
+                )
+            ),
+            Auction.start_price,
+        )
 
         bucket_to_range = {
             "LT_10000": (None, 10000),
@@ -440,9 +461,17 @@ class ProductReadRepository:
             )
         return result, int(total_stores)
 
-    def store_list(self, limit: int = 20, offset: int = 0) -> Tuple[List[StoreMeta], int]:
+    def store_list(
+        self, limit: int = 20, offset: int = 0
+    ) -> Tuple[List[StoreMeta], int]:
         stmt = (
-            select(PopupStore.id, PopupStore.image_url, PopupStore.name, PopupStore.description, PopupStore.sales_description)
+            select(
+                PopupStore.id,
+                PopupStore.image_url,
+                PopupStore.name,
+                PopupStore.description,
+                PopupStore.sales_description,
+            )
             .order_by(PopupStore.id.desc())
             .limit(limit)
             .offset(offset)
