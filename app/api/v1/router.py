@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     users,
     notifications,
 )
+from app.api.routes import upload
 
 api_router = APIRouter()
 api_router.include_router(health.api, prefix="/health", tags=["health"])
@@ -25,3 +26,4 @@ api_router.include_router(auth.api, prefix="/auth", tags=["auth"])
 api_router.include_router(users.api, prefix="/users", tags=["users"])
 api_router.include_router(stories.api, prefix="/stories", tags=["stories"])
 api_router.include_router(notifications.api, prefix="/notifications", tags=["notifications"])
+api_router.include_router(upload.api, prefix="/storage", tags=["storage"])

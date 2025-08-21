@@ -34,6 +34,17 @@ class Settings(BaseSettings):
     SMS_API_KEY: str = ""
     SMS_API_SECRET: str = ""
 
+    # AWS / S3
+    AWS_REGION: str = "ap-northeast-2"
+    AWS_S3_BUCKET_PRODUCTS: str = "nafalmvp-products"
+    AWS_S3_BUCKET_STORES: str = "nafalmvp-popup-stores"
+    AWS_S3_BUCKET_STORIES: str = "nafalmvp-stories"
+    AWS_S3_BUCKET_USERS: str = "nafalmvp-users"
+
+    # Upload constraints
+    MAX_UPLOAD_SIZE_MB: int = 5
+    ALLOWED_IMAGE_MIME: str = "image/jpeg,image/png,image/webp"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_ignore_empty=True,

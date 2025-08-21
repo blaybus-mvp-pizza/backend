@@ -11,6 +11,7 @@ from app.domains.auctions.bid_item import BidItem
 from app.domains.products.product_meta import ProductMeta
 from app.domains.products.service import ProductService
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
+from app.domains.products.enums import SortOption, StatusFilter, BiddersFilter, PriceBucket, ProductCategory
 
 
 def get_product_service(db: Session = Depends(get_db)) -> ProductService:
@@ -55,14 +56,14 @@ class CatalogAPI:
             size: int = Query(
                 30, ge=1, le=100, description="페이지 크기(기본 30, 최대 100)"
             ),
-            sort: str = Query(
-                "latest", description="정렬: recommended|popular|latest|ending"
-            ),
-            status: str = Query("RUNNING", description="상태 ALL|RUNNING|ENDED"),
-            bidders: str = Query("ALL", description="입찰자수 ALL|LE_10|BT_10_20|GE_20"),
-            price_bucket: str = Query("ALL", description="가격 ALL|LT_10000|BT_10000_30000|BT_30000_50000|BT_50000_150000|BT_150000_300000|BT_300000_500000|CUSTOM"),
+            sort: SortOption = Query(SortOption.latest, description="정렬: recommended|popular|latest|ending"),
+            status: StatusFilter = Query(StatusFilter.RUNNING, description="상태 ALL|RUNNING|ENDED"),
+            bidders: BiddersFilter = Query(BiddersFilter.ALL, description="입찰자수 ALL|LE_10|BT_10_20|GE_20"),
+            price_bucket: PriceBucket = Query(PriceBucket.ALL, description="가격 ALL|LT_10000|BT_10000_30000|BT_30000_50000|BT_50000_150000|BT_150000_300000|BT_300000_500000|CUSTOM"),
             price_min: Optional[float] = Query(None, description="CUSTOM 최소 가격"),
             price_max: Optional[float] = Query(None, description="CUSTOM 최대 가격"),
+            category: ProductCategory = Query(ProductCategory.ALL, description="카테고리 코드(ALL 포함)"),
+            q: Optional[str] = Query(None, description="키워드 포함 검색"),
         ):
             return service.products_by_store(
                 store_id=store_id,
@@ -74,6 +75,8 @@ class CatalogAPI:
                 price_bucket=price_bucket,
                 price_min=price_min,
                 price_max=price_max,
+                category=category.value if isinstance(category, ProductCategory) else category,
+                q=q,
             )
 
         @self.router.get(
@@ -139,12 +142,14 @@ class CatalogAPI:
             service: ProductService = Depends(get_product_service),
             page: int = Query(1, ge=1, description="페이지 번호(1부터)"),
             size: int = Query(4, ge=1, le=100, description="페이지 크기(기본 4)"),
-            sort: str = Query("latest", description="정렬 recommended|popular|latest|ending"),
-            status: str = Query("ALL", description="상태 ALL|RUNNING|ENDED"),
-            bidders: str = Query("ALL", description="입찰자수 ALL|LE_10|BT_10_20|GE_20"),
-            price_bucket: str = Query("ALL", description="가격 ALL|LT_10000|BT_10000_30000|BT_30000_50000|BT_50000_150000|BT_150000_300000|BT_300000_500000|CUSTOM"),
+            sort: SortOption = Query(SortOption.latest, description="정렬 recommended|popular|latest|ending"),
+            status: StatusFilter = Query(StatusFilter.ALL, description="상태 ALL|RUNNING|ENDED"),
+            bidders: BiddersFilter = Query(BiddersFilter.ALL, description="입찰자수 ALL|LE_10|BT_10_20|GE_20"),
+            price_bucket: PriceBucket = Query(PriceBucket.ALL, description="가격 ALL|LT_10000|BT_10000_30000|BT_30000_50000|BT_50000_150000|BT_150000_300000|BT_300000_500000|CUSTOM"),
             price_min: Optional[float] = Query(None, description="CUSTOM 최소 가격"),
             price_max: Optional[float] = Query(None, description="CUSTOM 최대 가격"),
+            category: str = Query("ALL", description="카테고리 ALL|가구/리빙|키친/테이블웨어|디지털/가전|패션/잡화|아트/컬렉터블|조명/소품|오피스/비즈니스"),
+            q: Optional[str] = Query(None, description="키워드 포함 검색"),
         ):
             return service.product_similar(
                 product_id=product_id,
@@ -156,6 +161,8 @@ class CatalogAPI:
                 price_bucket=price_bucket,
                 price_min=price_min,
                 price_max=price_max,
+                category=category,
+                q=q,
             )
 
 

@@ -1,4 +1,5 @@
 from typing import List
+from app.domains.products.enums import SortOption, StatusFilter, BiddersFilter, PriceBucket
 from app.domains.common.paging import Page, paginate
 from sqlalchemy.orm import Session
 
@@ -26,12 +27,14 @@ class ProductService:
         *,
         page: int,
         size: int,
-        status: str = "RUNNING",
-        bidders: str = "ALL",
-        price_bucket: str = "ALL",
+        status: StatusFilter = StatusFilter.RUNNING,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
         price_min: float | None = None,
         price_max: float | None = None,
-        sort: str = "ending",
+        sort: SortOption = SortOption.ending,
+        category: str | None = None,
+        q: str | None = None,
     ) -> Page[ProductListItem]:
         """마감임박 상품 조회 (페이지네이션)
 
@@ -42,12 +45,14 @@ class ProductService:
         items, total = self.products.ending_soon_products(
             limit=size,
             offset=offset,
-            status=status,
-            bidders=bidders,
-            price_bucket=price_bucket,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
             price_min=price_min,
             price_max=price_max,
-            sort=sort,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
+            category=category,
+            q=q,
         )
         return paginate(items, page, size, total)
 
@@ -56,24 +61,28 @@ class ProductService:
         *,
         page: int,
         size: int,
-        status: str = "RUNNING",
-        bidders: str = "ALL",
-        price_bucket: str = "ALL",
+        status: StatusFilter = StatusFilter.RUNNING,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
         price_min: float | None = None,
         price_max: float | None = None,
-        sort: str = "recommended",
+        sort: SortOption = SortOption.recommended,
+        category: str | None = None,
+        q: str | None = None,
     ) -> Page[ProductListItem]:
         """MD 추천 상품 조회 (페이지네이션)"""
         offset = (page - 1) * size
         items, total = self.products.recommended_products(
             limit=size,
             offset=offset,
-            status=status,
-            bidders=bidders,
-            price_bucket=price_bucket,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
             price_min=price_min,
             price_max=price_max,
-            sort=sort,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
+            category=category,
+            q=q,
         )
         return paginate(items, page, size, total)
 
@@ -82,24 +91,28 @@ class ProductService:
         *,
         page: int,
         size: int,
-        status: str = "RUNNING",
-        bidders: str = "ALL",
-        price_bucket: str = "ALL",
+        status: StatusFilter = StatusFilter.RUNNING,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
         price_min: float | None = None,
         price_max: float | None = None,
-        sort: str = "latest",
+        sort: SortOption = SortOption.latest,
+        category: str | None = None,
+        q: str | None = None,
     ) -> Page[ProductListItem]:
         """신규 상품 조회 (페이지네이션)"""
         offset = (page - 1) * size
         items, total = self.products.new_products(
             limit=size,
             offset=offset,
-            status=status,
-            bidders=bidders,
-            price_bucket=price_bucket,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
             price_min=price_min,
             price_max=price_max,
-            sort=sort,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
+            category=category,
+            q=q,
         )
         return paginate(items, page, size, total)
 
@@ -109,12 +122,14 @@ class ProductService:
         page: int,
         stores: int,
         size: int,
-        status: str = "RUNNING",
-        bidders: str = "ALL",
-        price_bucket: str = "ALL",
+        status: StatusFilter = StatusFilter.RUNNING,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
         price_min: float | None = None,
         price_max: float | None = None,
-        sort: str = "latest",
+        sort: SortOption = SortOption.latest,
+        category: str | None = None,
+        q: str | None = None,
     ) -> Page[StoreWithProducts]:
         """최근 오픈 스토어들 + 각 스토어별 최신 상품 묶음 조회"""
         offset = (page - 1) * stores
@@ -122,12 +137,14 @@ class ProductService:
             per_store_products=size,
             offset=offset,
             limit_stores=stores,
-            status=status,
-            bidders=bidders,
-            price_bucket=price_bucket,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
             price_min=price_min,
             price_max=price_max,
-            sort=sort,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
+            category=category,
+            q=q,
         )
         result: List[StoreWithProducts] = []
         for store, rows in pairs:
@@ -160,26 +177,60 @@ class ProductService:
         self,
         *,
         store_id: int,
-        sort: str,
+        sort: SortOption,
         page: int,
         size: int,
-        status: str = "RUNNING",
-        bidders: str = "ALL",
-        price_bucket: str = "ALL",
+        status: StatusFilter = StatusFilter.RUNNING,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
         price_min: float | None = None,
         price_max: float | None = None,
+        category: str | None = None,
+        q: str | None = None,
     ) -> Page[ProductListItem]:
         """특정 스토어 내 상품 목록 조회 (정렬/페이징)"""
         items, total = self.products.products_by_store(
             store_id=store_id,
-            sort=sort,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
             page=page,
             size=size,
-            status=status,
-            bidders=bidders,
-            price_bucket=price_bucket,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
             price_min=price_min,
             price_max=price_max,
+            category=category,
+            q=q,
+        )
+        return paginate(items, page, size, total)
+
+    def upcoming(
+        self,
+        *,
+        page: int,
+        size: int,
+        status: StatusFilter = StatusFilter.SCHEDULED,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
+        price_min: float | None = None,
+        price_max: float | None = None,
+        sort: SortOption = SortOption.ending,
+        category: str | None = None,
+        q: str | None = None,
+    ) -> Page[ProductListItem]:
+        """오픈예정 상품 조회 (페이지네이션)"""
+        offset = (page - 1) * size
+        items, total = self.products.upcoming_products(
+            limit=size,
+            offset=offset,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_min=price_min,
+            price_max=price_max,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
+            category=category,
+            q=q,
         )
         return paginate(items, page, size, total)
 
@@ -230,12 +281,14 @@ class ProductService:
         product_id: int,
         page: int,
         size: int,
-        status: str = "ALL",
-        bidders: str = "ALL",
-        price_bucket: str = "ALL",
+        status: StatusFilter = StatusFilter.ALL,
+        bidders: BiddersFilter = BiddersFilter.ALL,
+        price_bucket: PriceBucket = PriceBucket.ALL,
         price_min: float | None = None,
         price_max: float | None = None,
-        sort: str = "latest",
+        sort: SortOption = SortOption.latest,
+        category: str | None = None,
+        q: str | None = None,
     ) -> Page[ProductListItem]:
         """같은 스토어 내 유사 상품 조회 (페이지네이션)"""
         offset = (page - 1) * size
@@ -243,11 +296,13 @@ class ProductService:
             product_id,
             limit=size,
             offset=offset,
-            status=status,
-            bidders=bidders,
-            price_bucket=price_bucket,
+            status=status.value if isinstance(status, StatusFilter) else status,
+            bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
+            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
             price_min=price_min,
             price_max=price_max,
-            sort=sort,
+            sort=sort.value if isinstance(sort, SortOption) else sort,
+            # category filter not applied for similar scope
+            q=q,
         )
         return paginate(items, page, size, total)

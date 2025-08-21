@@ -1,6 +1,6 @@
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, desc, and_
+from sqlalchemy import select, func, desc, and_, or_
 from app.schemas.products import Product, ProductImage
 from app.schemas.stores import PopupStore
 from app.schemas.auctions import Auction, Bid
@@ -48,6 +48,8 @@ class ProductReadRepository:
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         highest_bid_subq=None,
+        category: Optional[str] = None,  # ALL or concrete category string
+        q: Optional[str] = None,
     ):
         # Status filter
         if status and status != "ALL":
@@ -55,6 +57,8 @@ class ProductReadRepository:
                 stmt = stmt.where(Auction.status == "RUNNING")
             elif status == "ENDED":
                 stmt = stmt.where(Auction.status == "ENDED")
+            elif status == "SCHEDULED":
+                stmt = stmt.where(Auction.status == "SCHEDULED")
 
         # Bidder count filter (requires bidder_count subquery present in select or available via correlate)
         # We'll recompute bidder_count scalar_subquery for safety
@@ -97,6 +101,22 @@ class ProductReadRepository:
             if price_max is not None:
                 stmt = stmt.where(price_expr < price_max)
 
+        # Category filter
+        if category and category != "ALL":
+            stmt = stmt.where(Product.category == category)
+
+        # Keyword search (LIKE on product/store text fields)
+        if q:
+            like = f"%{q}%"
+            stmt = stmt.where(
+                or_(
+                    Product.name.like(like),
+                    Product.summary.like(like),
+                    Product.description.like(like),
+                    PopupStore.name.like(like),
+                )
+            )
+
         return stmt
 
     def _count_products_with_filters(
@@ -108,6 +128,8 @@ class ProductReadRepository:
         price_bucket: Optional[str] = None,
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
+        category: Optional[str] = None,
+        q: Optional[str] = None,
     ) -> int:
         # Build count select mirroring filters
         stmt = (
@@ -129,6 +151,8 @@ class ProductReadRepository:
                 .correlate(Auction)
                 .scalar_subquery()
             ),
+            category=category,
+            q=q,
         )
         total = self.db.execute(stmt).scalar_one()
         return int(total)
@@ -144,6 +168,8 @@ class ProductReadRepository:
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         sort: str = "ending",
+        category: Optional[str] = None,
+        q: Optional[str] = None,
     ) -> Tuple[List[ProductListItem], int]:
         rep_img, highest_bid, bidder_count = self._base_product_select()
         stmt = (
@@ -155,6 +181,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bidder_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -171,6 +199,8 @@ class ProductReadRepository:
             price_min=price_min,
             price_max=price_max,
             highest_bid_subq=highest_bid,
+            category=category,
+            q=q,
         )
         # Sorting
         if sort == "recommended":
@@ -192,6 +222,8 @@ class ProductReadRepository:
             price_bucket=price_bucket,
             price_min=price_min,
             price_max=price_max,
+            category=category,
+            q=q,
         )
         return rows_to_product_items(rows), total
 
@@ -206,6 +238,8 @@ class ProductReadRepository:
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         sort: str = "recommended",
+        category: Optional[str] = None,
+        q: Optional[str] = None,
     ) -> Tuple[List[ProductListItem], int]:
         rep_img, highest_bid, bid_count = self._base_product_select()
         stmt = (
@@ -217,6 +251,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bid_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -233,6 +269,8 @@ class ProductReadRepository:
             price_min=price_min,
             price_max=price_max,
             highest_bid_subq=highest_bid,
+            category=category,
+            q=q,
         )
         # Sorting
         if sort == "recommended":
@@ -253,6 +291,8 @@ class ProductReadRepository:
             price_bucket=price_bucket,
             price_min=price_min,
             price_max=price_max,
+            category=category,
+            q=q,
         )
         return rows_to_product_items(rows), total
 
@@ -267,6 +307,8 @@ class ProductReadRepository:
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         sort: str = "latest",
+        category: Optional[str] = None,
+        q: Optional[str] = None,
     ) -> Tuple[List[ProductListItem], int]:
         rep_img, highest_bid, bidder_count = self._base_product_select()
         stmt = (
@@ -278,6 +320,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bidder_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -294,6 +338,8 @@ class ProductReadRepository:
             price_min=price_min,
             price_max=price_max,
             highest_bid_subq=highest_bid,
+            category=category,
+            q=q,
         )
         if sort == "recommended":
             price_expr = func.coalesce(highest_bid, Auction.start_price)
@@ -313,6 +359,8 @@ class ProductReadRepository:
             price_bucket=price_bucket,
             price_min=price_min,
             price_max=price_max,
+            category=category,
+            q=q,
         )
         return rows_to_product_items(rows), total
 
@@ -328,6 +376,8 @@ class ProductReadRepository:
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
         sort: str = "latest",
+        category: Optional[str] = None,
+        q: Optional[str] = None,
     ) -> Tuple[List[tuple], int]:
         rep_img, highest_bid, bidder_count = self._base_product_select()
         stores_stmt = (
@@ -349,6 +399,8 @@ class ProductReadRepository:
                     Auction.buy_now_price.label("buy_now_price"),
                     rep_img.label("representative_image"),
                     Auction.ends_at.label("auction_ends_at"),
+                    bidder_count.label("bidder_count"),
+                    Product.created_at.label("product_created_at"),
                 )
                 .join(PopupStore, PopupStore.id == Product.popup_store_id)
                 .join(Auction, Auction.product_id == Product.id)
@@ -366,6 +418,8 @@ class ProductReadRepository:
                 price_min=price_min,
                 price_max=price_max,
                 highest_bid_subq=highest_bid,
+                category=category,
+                q=q,
             )
             if sort == "recommended":
                 price_expr = func.coalesce(highest_bid, Auction.start_price)
@@ -432,6 +486,8 @@ class ProductReadRepository:
         price_bucket: str = "ALL",
         price_min: Optional[float] = None,
         price_max: Optional[float] = None,
+        category: Optional[str] = None,
+        q: Optional[str] = None,
     ) -> Tuple[List[ProductListItem], int]:
         rep_img, highest_bid, bid_count = self._base_product_select()
         stmt = (
@@ -443,6 +499,8 @@ class ProductReadRepository:
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
                 Auction.ends_at.label("auction_ends_at"),
+                bid_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
             )
             .join(PopupStore, PopupStore.id == Product.popup_store_id)
             .join(Auction, Auction.product_id == Product.id)
@@ -460,6 +518,8 @@ class ProductReadRepository:
             price_min=price_min,
             price_max=price_max,
             highest_bid_subq=highest_bid,
+            category=category,
+            q=q,
         )
         if sort == "recommended":
             price_expr = func.coalesce(highest_bid, Auction.start_price)
@@ -483,8 +543,79 @@ class ProductReadRepository:
             price_bucket=price_bucket,
             price_min=price_min,
             price_max=price_max,
+            category=category,
+            q=q,
         )
         return rows_to_product_items(rows), int(total)
+
+    def upcoming_products(
+        self,
+        *,
+        limit: int = 4,
+        offset: int = 0,
+        status: str = "SCHEDULED",
+        bidders: str = "ALL",
+        price_bucket: str = "ALL",
+        price_min: Optional[float] = None,
+        price_max: Optional[float] = None,
+        sort: str = "ending",
+        category: Optional[str] = None,
+        q: Optional[str] = None,
+    ) -> Tuple[List[ProductListItem], int]:
+        rep_img, highest_bid, bidder_count = self._base_product_select()
+        stmt = (
+            select(
+                Product.id.label("product_id"),
+                PopupStore.name.label("popup_store_name"),
+                Product.name.label("product_name"),
+                highest_bid.label("current_highest_bid"),
+                Auction.buy_now_price.label("buy_now_price"),
+                rep_img.label("representative_image"),
+                Auction.starts_at.label("auction_ends_at"),
+                bidder_count.label("bidder_count"),
+                Product.created_at.label("product_created_at"),
+            )
+            .join(PopupStore, PopupStore.id == Product.popup_store_id)
+            .join(Auction, Auction.product_id == Product.id)
+            .where(
+                Product.is_active == 1,
+                Product.is_sold == 0,
+            )
+        )
+        stmt = self._apply_common_filters(
+            stmt,
+            status=status,
+            bidders=bidders,
+            price_bucket=price_bucket,
+            price_min=price_min,
+            price_max=price_max,
+            highest_bid_subq=highest_bid,
+            category=category,
+            q=q,
+        )
+        # Sorting: reuse keys; for "ending" interpret as starts_at asc (오픈 임박)
+        if sort == "recommended":
+            price_expr = func.coalesce(highest_bid, Auction.start_price)
+            stmt = stmt.order_by(desc(price_expr))
+        elif sort == "popular":
+            stmt = stmt.order_by(desc(bidder_count))
+        elif sort == "latest":
+            stmt = stmt.order_by(Product.created_at.desc())
+        else:  # ending -> opening soon
+            stmt = stmt.order_by(Auction.starts_at.asc())
+        stmt = stmt.limit(limit).offset(offset)
+        rows = self.db.execute(stmt)
+        total = self._count_products_with_filters(
+            base_where=(Product.is_active == 1, Product.is_sold == 0),
+            status=status,
+            bidders=bidders,
+            price_bucket=price_bucket,
+            price_min=price_min,
+            price_max=price_max,
+            category=category,
+            q=q,
+        )
+        return rows_to_product_items(rows), total
 
     def product_meta(self, product_id: int) -> ProductMeta:
         prod = self.db.execute(

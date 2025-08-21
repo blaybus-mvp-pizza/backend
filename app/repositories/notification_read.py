@@ -1,6 +1,6 @@
 from typing import List
 from sqlalchemy.orm import Session
-from sqlalchemy import select, desc
+from sqlalchemy import select, desc, func
 from app.schemas.notifications import Notification
 
 
@@ -16,5 +16,11 @@ class NotificationReadRepository:
             .limit(limit)
         )
         return [row[0] for row in self.db.execute(stmt).all()]
+
+    def count_unread_by_user(self, *, user_id: int) -> int:
+        stmt = select(func.count(Notification.id)).where(
+            Notification.user_id == user_id, Notification.status != "READ"
+        )
+        return int(self.db.execute(stmt).scalar_one())
 
 
