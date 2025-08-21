@@ -135,7 +135,9 @@ class AdminAuctionsAPI:
             service: AuctionAdminService = Depends(get_admin_service),
         ):
             # reuse upsert validations by injecting id
-            req_with_id = AdminAuctionUpsertRequest(id=auction_id, **req.model_dump())
+            payload = req.model_dump()
+            payload["id"] = auction_id
+            req_with_id = AdminAuctionUpsertRequest(**payload)
             return service.upsert(req_with_id)
 
         @self.router.patch(
@@ -187,9 +189,7 @@ class AdminAuctionsAPI:
             domain: AuctionDomainService = Depends(lambda db=Depends(get_db): AuctionDomainService(
                 db,
                 AuctionReadRepository(db),
-                AuctionAdminWriteRepository(db),  # uses get_auction_by_id via write repo
-                # Order/Payment deps are wired inside AuctionService factory in auction_actions; replicate minimal
-                # We'll import concrete repos here
+                __import__('app.repositories.auction_write', fromlist=['AuctionWriteRepository']).AuctionWriteRepository(db),
                 __import__('app.repositories.order_write', fromlist=['OrderWriteRepository']).OrderWriteRepository(db),
                 __import__('app.repositories.payment_write', fromlist=['PaymentWriteRepository']).PaymentWriteRepository(db),
                 __import__('app.repositories.auction_deposit', fromlist=['AuctionDepositRepository']).AuctionDepositRepository(db),

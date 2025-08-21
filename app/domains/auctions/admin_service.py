@@ -132,7 +132,14 @@ class AuctionAdminService:
                 raise BusinessError(ErrorCode.CANNOT_CANCEL_NON_RUNNING, "진행중 경매만 중단할 수 있습니다.")
         elif req.status == AuctionStatus.RUNNING.value:
             now = datetime.now(timezone.utc)
-            if not (a.starts_at <= now <= a.ends_at):
+            # Normalize DB datetimes to timezone-aware (assume UTC if naive)
+            starts_at = a.starts_at
+            ends_at = a.ends_at
+            if starts_at.tzinfo is None:
+                starts_at = starts_at.replace(tzinfo=timezone.utc)
+            if ends_at.tzinfo is None:
+                ends_at = ends_at.replace(tzinfo=timezone.utc)
+            if not (starts_at <= now <= ends_at):
                 raise BusinessError(
                     ErrorCode.CANNOT_RESUME_EXPIRED_AUCTION, "진행 기간 내에서만 재개할 수 있습니다."
                 )
