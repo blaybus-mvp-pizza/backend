@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     AWS_S3_BUCKET_USERS: str = "nafalmvp-users"
 
     # Admin
-    ADMIN_TOKEN: str = ""
+    ADMIN_TOKEN: str = "7f4f3b6c6f8e4e3b9a2f1c8d5e7a4b6c9d2e1f0a3b5c7d9e1f2a4c6e8b0d2f4"
 
     # Upload constraints
     MAX_UPLOAD_SIZE_MB: int = 5
