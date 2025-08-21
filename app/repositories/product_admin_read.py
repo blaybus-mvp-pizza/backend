@@ -76,17 +76,6 @@ class ProductAdminReadRepository:
             ).where(Auction.product_id == product_id)
         ).first()
 
-        if auction:
-            order_status = self.db.execute(
-                select(Order.status)
-                .select_from(AuctionOffer)
-                .join(Order, Order.id == AuctionOffer.order_id)
-                .where(AuctionOffer.auction_id == auction.id)
-            ).scalar_one_or_none()
-        else:
-            order_status = None
-        if not order_status:
-            order_status = "N/A"
         images = [
             r[0]
             for r in self.db.execute(
@@ -142,7 +131,6 @@ class ProductAdminReadRepository:
             store_sales_description=store.sales_description,
             auction_start_price=auction.start_price if auction else None,
             auction_buy_now_price=auction.buy_now_price if auction else None,
-            order_status=order_status,
         )
 
     def product_admin_list(

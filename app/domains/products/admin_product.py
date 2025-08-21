@@ -53,16 +53,25 @@ class ProductBase(BaseModel):
 
 
 class ProductAdminMeta(ProductBase):
-    id: int
-    created_at: str
-    updated_at: str
-    auction_id: Optional[int]
+    id: int = Field(..., description="상품 ID", example=3001)
+    created_at: str = Field(
+        ..., description="상품 생성 일시", example="2023-10-01T12:00:00Z"
+    )
+    updated_at: str = Field(
+        ..., description="상품 수정 일시", example="2023-10-01T12:00:00Z"
+    )
+    auction_id: Optional[int] = Field(
+        None, description="경매 ID (경매 상품인 경우)", example=4001
+    )
     status: str = Field(..., description="auction.status=='ENDED' ? SOLD : AVAILABLE")
     store_description: Optional[str]
     store_sales_description: Optional[str]
-    auction_start_price: Optional[Decimal]
-    auction_buy_now_price: Optional[Decimal]
-    order_status: str = Field(..., description="결제/배송 상태. order가 없다면 N/A")
+    auction_start_price: Optional[Decimal] = Field(
+        None, description="경매 시작 가격", example="50000.00"
+    )
+    auction_buy_now_price: Optional[Decimal] = Field(
+        None, description="경매 즉시 구매 가격", example="200000.00"
+    )
 
 
 class ProductCreateOrUpdate(ProductBase):
