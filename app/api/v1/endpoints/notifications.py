@@ -7,6 +7,7 @@ from app.domains.notifications.dto import (
     NotificationListResult,
     MarkReadRequest,
     MarkReadResult,
+    UnreadCountResult,
 )
 from app.domains.common.error_response import ServerErrorResponse
 
@@ -49,6 +50,20 @@ class NotificationsAPI:
         ):
             # 간단히 상태 업데이트. 소유권 검증은 추후 확장 가능
             return service.mark_read(req)
+
+        @self.router.get(
+            "/count/unread",
+            response_model=UnreadCountResult,
+            summary="안읽은 알림 개수",
+            description="현재 사용자의 안읽은 알림 개수를 반환합니다.",
+            response_description="카운트",
+            responses={500: {"model": ServerErrorResponse, "description": "서버 내부 오류"}},
+        )
+        async def unread_count(
+            service: NotificationService = Depends(get_notification_service),
+            user_id: int = Depends(get_current_user_id_verified),
+        ):
+            return service.unread_count(user_id=user_id)
 
 
 api = NotificationsAPI().router

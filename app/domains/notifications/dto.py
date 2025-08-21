@@ -32,3 +32,7 @@ class MarkReadRequest(BaseModel):
 
 class MarkReadResult(BaseModel):
     ok: bool = True
+
+
+class UnreadCountResult(BaseModel):
+    count: int
