@@ -43,3 +43,7 @@ class ProductCategory(str, Enum):
     CHAIR = "CHAIR"
 
 
+class ProductAdminStatusFilter(str, Enum):
+    ALL = "ALL"
+    AVAILABLE = "AVAILABLE"
+    SOLD = "SOLD"

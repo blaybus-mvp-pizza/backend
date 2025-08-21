@@ -1,8 +1,20 @@
+from ast import Store
+from datetime import datetime
 from typing import List
-from app.domains.products.enums import SortOption, StatusFilter, BiddersFilter, PriceBucket
+from app.domains.products.enums import (
+    SortOption,
+    StatusFilter,
+    BiddersFilter,
+    PriceBucket,
+    ProductAdminStatusFilter,
+)
+from app.core.errors import BusinessError
+
 from app.domains.common.paging import Page, paginate
 from sqlalchemy.orm import Session
 
+from app.domains.common.str_to_datetime import str_to_datetime
+from app.domains.common.tx import transactional
 from app.repositories.product_read import ProductReadRepository
 from app.repositories.auction_read import AuctionReadRepository
 
@@ -14,6 +26,8 @@ from app.domains.auctions.bid_rules import BidRules
 from app.domains.products.product_meta import ProductMeta
 
 from app.domains.products.mappers import rows_to_product_items
+from sqlalchemy import select
+from app.schemas.products import Product as ProductModel
 
 
 class ProductService:
@@ -47,7 +61,11 @@ class ProductService:
             offset=offset,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             sort=sort.value if isinstance(sort, SortOption) else sort,
@@ -77,7 +95,11 @@ class ProductService:
             offset=offset,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             sort=sort.value if isinstance(sort, SortOption) else sort,
@@ -107,7 +129,11 @@ class ProductService:
             offset=offset,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             sort=sort.value if isinstance(sort, SortOption) else sort,
@@ -139,7 +165,11 @@ class ProductService:
             limit_stores=stores,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             sort=sort.value if isinstance(sort, SortOption) else sort,
@@ -196,7 +226,11 @@ class ProductService:
             size=size,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             category=category,
@@ -225,7 +259,11 @@ class ProductService:
             offset=offset,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             sort=sort.value if isinstance(sort, SortOption) else sort,
@@ -298,7 +336,11 @@ class ProductService:
             offset=offset,
             status=status.value if isinstance(status, StatusFilter) else status,
             bidders=bidders.value if isinstance(bidders, BiddersFilter) else bidders,
-            price_bucket=price_bucket.value if isinstance(price_bucket, PriceBucket) else price_bucket,
+            price_bucket=(
+                price_bucket.value
+                if isinstance(price_bucket, PriceBucket)
+                else price_bucket
+            ),
             price_min=price_min,
             price_max=price_max,
             sort=sort.value if isinstance(sort, SortOption) else sort,
