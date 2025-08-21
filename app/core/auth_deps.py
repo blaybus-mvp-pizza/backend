@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.security import decode_access_token
 from app.core.deps import get_db
 from app.repositories.user_read import UserReadRepository
+from app.core.config import settings
 
 
 def get_current_user_id(authorization: Optional[str] = Header(None)) -> int:
@@ -44,3 +45,21 @@ def get_current_user_id_verified(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found"
         )
     return user_id
+
+
+def require_admin(authorization: Optional[str] = Header(None)) -> None:
+    """Admin token based authorization.
+
+    - Accepts static admin token via Authorization: Bearer <token>
+    - Returns 401 if missing/invalid
+    """
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing bearer token"
+        )
+    token = authorization.split(" ", 1)[1].strip()
+    if not settings.ADMIN_TOKEN or token != settings.ADMIN_TOKEN:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid admin token"
+        )
+    return None

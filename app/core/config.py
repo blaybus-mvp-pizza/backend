@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "MVP Project"
     VERSION: str = "0.1.0"
     API_V1_STR: str = "/users/v1"
+    ADMIN_API_STR: str = "/admin/v1"
 
     # Required
     DATABASE_URL: str  # must be provided via env/.env
@@ -40,6 +41,9 @@ class Settings(BaseSettings):
     AWS_S3_BUCKET_STORES: str = "nafalmvp-popup-stores"
     AWS_S3_BUCKET_STORIES: str = "nafalmvp-stories"
     AWS_S3_BUCKET_USERS: str = "nafalmvp-users"
+
+    # Admin
+    ADMIN_TOKEN: str = ""
 
     # Upload constraints
     MAX_UPLOAD_SIZE_MB: int = 5
