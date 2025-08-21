@@ -5,6 +5,7 @@ from sqlalchemy import select, func, desc, and_, or_, exists
 
 from app.schemas.auctions import Auction, Bid
 from app.schemas.products import Product, ProductImage
+from app.schemas.stores import PopupStore
 from app.schemas.orders import Order, OrderItem, Shipment
 from app.schemas.payments import Payment
 from app.domains.auctions.user_dto import (
