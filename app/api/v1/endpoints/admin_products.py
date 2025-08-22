@@ -51,7 +51,8 @@ class AdminProductsAPI:
                 description="상품 상태 필터 ALL| AVAILABLE|SOLD",
             ),
             category: ProductCategory = Query(
-                ProductCategory.ALL, description="카테고리 코드(ALL 포함)"
+                ProductCategory.ALL,
+                description="카테고리 ALL|가구/리빙|키친/테이블웨어|디지털/가전|패션/잡화|아트/컬렉터블|조명/소품|오피스/비즈니스",
             ),
             q: Optional[str] = Query(
                 None, description="검색어 (상품명, 상품 summary, 상품 description)"

@@ -36,7 +36,7 @@ class ProductBase(BaseModel):
             "https://nafalmvp-products.s3.ap-northeast-2.amazonaws.com/main/product-1-main.png",
         ],
     )
-    category: str = Field(..., description="상품 카테고리", example="FURNITURE")
+    category: str = Field(..., description="상품 카테고리", example="가구/리빙")
     tags: List[str] = Field(..., description="상품 태그 리스트", example=["가구"])
     specs: ProductSpecs = Field(..., description="상품 스펙 정보")
     store_id: int = Field(..., description="스토어 ID", example=2001)
