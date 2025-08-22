@@ -36,11 +36,13 @@ class PriceBucket(str, Enum):
 class ProductCategory(str, Enum):
     # API values aligned to DB product.category codes. Extend as needed.
     ALL = "ALL"
-    FURNITURE = "FURNITURE"
-    LIGHTING = "LIGHTING"
-    DECOR = "DECOR"
-    CERAMIC = "CERAMIC"
-    CHAIR = "CHAIR"
+    FURNITURE = "가구/리빙"
+    KITCHEN = "키친/테이블웨어"
+    ELECTRONICS = "디지털/가전"
+    FASHION = "패션/잡화"
+    ART = "아트/컬렉터블"
+    LIGHTING = "조명/소품"
+    OFFICE = "오피스/비즈니스"
 
 
 class ProductAdminStatusFilter(str, Enum):
