@@ -20,7 +20,7 @@ class AdminStoresAPI:
         self.router = APIRouter()
 
         @self.router.get(
-            "/",
+            "",
             response_model=Page[StoreMeta],
             summary="스토어 목록 페이지 조회",
             description="스토어의 요약 메타데이터를 페이징 조회합니다.",
@@ -91,7 +91,7 @@ class AdminStoresAPI:
             return service.store_meta_full(store_id=store_id)
 
         @self.router.post(
-            "/",
+            "",
             response_model=StoreAdminMeta,
             summary="스토어 생성 or 수정",
             description="스토어 정보를 생성하거나 수정합니다. 스토어 ID가 없으면 생성, 있으면 수정합니다.",
