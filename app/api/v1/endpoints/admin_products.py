@@ -24,7 +24,7 @@ class AdminProductsAPI:
         self.router = APIRouter()
 
         @self.router.get(
-            "/",
+            "",
             response_model=Page[ProductAdminListItem],
             summary="상품 목록 페이지 조회",
             description="상품의 요약 메타데이터를 페이징 조회합니다.",
@@ -94,7 +94,7 @@ class AdminProductsAPI:
             return service.product_admin_meta(product_id=product_id)
 
         @self.router.post(
-            "/",
+            "",
             response_model=ProductAdminMeta,
             summary="상품 생성 or 수정",
             description="상품을 생성하거나 수정합니다. 상품 ID가 없으면 생성, 있으면 수정합니다.",
