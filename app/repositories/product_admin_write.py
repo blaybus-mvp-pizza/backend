@@ -1,19 +1,12 @@
 from datetime import datetime
-from tkinter import image_types
-from turtle import st
 from typing import List, Tuple, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import select, func, desc, and_
+from sqlalchemy import select
 from app.schemas.products import Product, ProductImage
 from app.schemas.products.product_tag import ProductTag
 from app.schemas.products.tag import Tag
 from app.schemas.stores import PopupStore
-from app.schemas.auctions import Auction, Bid
-from app.domains.products.mappers import rows_to_product_items
-from app.domains.products.store_meta import StoreMeta
-from app.domains.products.product_meta import ProductMeta, ProductSpecs
-from app.domains.products.product_list_item import ProductListItem
-from app.domains.products.store_with_products import StoreWithProducts
+from app.domains.products.product_meta import ProductSpecs
 
 
 class ProductAdminWriteRepository:
