@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.deps import get_db
@@ -79,12 +80,12 @@ class AuthAPI:
                 raise HTTPException(status_code=400, detail=str(e))
 
             token = create_access_token(subject=str(user.id))
-            # response = RedirectResponse(
-            #     url="http://localhost:3000", status_code=status.HTTP_302_FOUND
-            # )
-            # response.set_cookie(key="access_token", value=token, httponly=True, secure=True)
-            # return response
-            return Token(access_token=token)
+            redirect_url = f"{settings.FRONTEND_REDIRECT_URL}?access_token={token}"
+            response = RedirectResponse(
+                url=redirect_url,
+                status_code=status.HTTP_302_FOUND,
+            )
+            return response
 
 
 api = AuthAPI().router
