@@ -6,7 +6,6 @@ from app.domains.products.enums import (
     StatusFilter,
     BiddersFilter,
     PriceBucket,
-    ProductAdminStatusFilter,
 )
 from app.core.errors import BusinessError
 

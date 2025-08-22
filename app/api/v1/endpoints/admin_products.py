@@ -7,7 +7,7 @@ from app.domains.common.paging import Page
 
 from app.core.deps import get_db
 from app.domains.products.admin_service import ProductAdminService
-from app.domains.products.enums import ProductAdminStatusFilter, ProductCategory
+from app.domains.products.enums import ProductCategory
 from app.domains.products.admin_product import (
     ProductAdminListItem,
     ProductAdminMeta,
@@ -46,9 +46,16 @@ class AdminProductsAPI:
             size: int = Query(
                 20, ge=1, le=100, description="페이지 크기(기본 20, 최대 100)"
             ),
-            status: ProductAdminStatusFilter = Query(
-                ProductAdminStatusFilter.ALL,
-                description="상품 상태 필터 ALL| AVAILABLE|SOLD",
+            is_active: Optional[bool] = Query(
+                None,
+                description="상품 활성화 상태 필터 None (전체), True (활성화), False (비활성화)",
+            ),
+            is_sold: Optional[bool] = Query(
+                None,
+                description="상품 판매 완료 상태 필터 None (전체), True (판매 완료), False (판매 중)",
+            ),
+            store_id: Optional[int] = Query(
+                None, description="스토어 ID 필터. None이면 전체 조회"
             ),
             category: ProductCategory = Query(
                 ProductCategory.ALL,
@@ -61,7 +68,9 @@ class AdminProductsAPI:
             return service.product_admin_list(
                 page=page,
                 size=size,
-                status=status,
+                is_active=is_active,
+                is_sold=is_sold,
+                store_id=store_id,
                 category=category,
                 q=q,
             )

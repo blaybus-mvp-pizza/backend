@@ -43,9 +43,3 @@ class ProductCategory(str, Enum):
     ART = "아트/컬렉터블"
     LIGHTING = "조명/소품"
     OFFICE = "오피스/비즈니스"
-
-
-class ProductAdminStatusFilter(str, Enum):
-    ALL = "ALL"
-    AVAILABLE = "AVAILABLE"
-    SOLD = "SOLD"
