@@ -16,6 +16,7 @@ from app.domains.notifications.service import NotificationService
 from app.domains.notifications.dto import NotifyRequest
 from app.domains.orders.service import OrderService
 from app.schemas.auctions import AuctionOffer
+from app.schemas.auctions.bid import Bid
 
 
 class AuctionService:
@@ -78,17 +79,26 @@ class AuctionService:
             bid = self.auctions_write.place_bid(auction_id, user_id, amount)
 
             return BidResult(bid_id=bid.id, amount=float(bid.amount))
-    
+
     def send_bid_notification(self, auction: Auction, user_id: int, amount: float):
         print("알림 발송")
         # Notifications
-        store_name = auction.product.store.name if auction.product and auction.product.store else ""
+        store_name = (
+            auction.product.store.name
+            if auction.product and auction.product.store
+            else ""
+        )
         product_name = auction.product.name if auction.product else ""
         title = f"{store_name} 팝업스토어 {product_name}"
 
         # 1) 현재 최고 입찰자 알림 (본인)
         self.notifications.send(
-            NotifyRequest(user_id=user_id, title=f"{title} 현재 최고 입찰자입니다.", body="", product_id=auction.product_id)
+            NotifyRequest(
+                user_id=user_id,
+                title=f"{title} 현재 최고 입찰자입니다.",
+                body="",
+                product_id=auction.product_id,
+            )
         )
 
         # 2) 이전 입찰자들에게 추월 알림
@@ -131,7 +141,11 @@ class AuctionService:
             auction.status = AuctionStatus.ENDED.value
             auction.product.is_sold = 1
             # TODO: 이전 입찰자들 환불 처리
-            store_name = auction.product.store.name if auction.product and auction.product.store else ""
+            store_name = (
+                auction.product.store.name
+                if auction.product and auction.product.store
+                else ""
+            )
             product_name = auction.product.name if auction.product else ""
             title = f"{store_name} 팝업스토어 {product_name}"
 
@@ -151,7 +165,12 @@ class AuctionService:
 
             # 4) 즉시구매자에게 주문 접수 알림
             self.notifications.send(
-                NotifyRequest(user_id=user_id, title=f"{title} 주문이 접수됐어요.", body="", product_id=auction.product_id)
+                NotifyRequest(
+                    user_id=user_id,
+                    title=f"{title} 주문이 접수됐어요.",
+                    body="",
+                    product_id=auction.product_id,
+                )
             )
         return BuyNowResult(status="ORDER_PLACED", payment_id=order_result.payment_id)
 
@@ -164,13 +183,17 @@ class AuctionService:
         with transactional(self.session):
             auction = self.auctions_write.get_auction_by_id(auction_id)
             if not auction:
-                raise BusinessError(ErrorCode.AUCTION_NOT_FOUND, "경매를 찾을 수 없습니다.")
+                raise BusinessError(
+                    ErrorCode.AUCTION_NOT_FOUND, "경매를 찾을 수 없습니다."
+                )
             if auction.status != AuctionStatus.ENDED.value:
                 raise BusinessError(
-                    ErrorCode.INVALID_AUCTION_STATUS, "종료된 경매만 낙찰 처리 가능합니다."
+                    ErrorCode.INVALID_AUCTION_STATUS,
+                    "종료된 경매만 낙찰 처리 가능합니다.",
                 )
             # 최고 입찰자 조회
             from sqlalchemy import select
+
             winner_row = self.session.execute(
                 select(Bid)
                 .where(Bid.auction_id == auction_id)
@@ -178,7 +201,9 @@ class AuctionService:
                 .limit(1)
             ).first()
             if not winner_row:
-                raise BusinessError(ErrorCode.WINNER_NOT_FOUND, "낙찰자를 찾을 수 없습니다.")
+                raise BusinessError(
+                    ErrorCode.WINNER_NOT_FOUND, "낙찰자를 찾을 수 없습니다."
+                )
             winner_bid: Bid = winner_row[0]
 
             # 결제 승인(즉시구매가 없으면 최고가로 결제)
@@ -205,6 +230,13 @@ class AuctionService:
             # 알림
             title = f"{auction.product.store.name if auction.product and auction.product.store else ''} {auction.product.name if auction.product else ''}"
             self.notifications.send(
-                NotifyRequest(user_id=winner_bid.user_id, title=f"{title} 낙찰되었습니다.", body="", product_id=auction.product_id)
+                NotifyRequest(
+                    user_id=winner_bid.user_id,
+                    title=f"{title} 낙찰되었습니다.",
+                    body="",
+                    product_id=auction.product_id,
+                )
             )
-            return BuyNowResult(status="ORDER_PLACED", payment_id=order_result.payment_id)
+            return BuyNowResult(
+                status="ORDER_PLACED", payment_id=order_result.payment_id
+            )

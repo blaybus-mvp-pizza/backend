@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.repositories.notification_write import NotificationWriteRepository
 from app.repositories.notification_read import NotificationReadRepository
@@ -26,11 +27,17 @@ class NotificationService:
         :return: NotifyResult(ok)
         """
         self.repo.create(
-            user_id=req.user_id, title=req.title, body=req.body, channel=req.channel, product_id=req.product_id
+            user_id=req.user_id,
+            title=req.title,
+            body=req.body,
+            channel=req.channel,
+            product_id=req.product_id,
         )
         return NotifyResult(ok=True)
 
-    def list_my_notifications(self, *, user_id: int, limit: int = 50) -> NotificationListResult:
+    def list_my_notifications(
+        self, *, user_id: int, limit: int = 50
+    ) -> NotificationListResult:
         notifications = self.read.list_by_user(user_id=user_id, limit=limit)
         items = []
         for n in notifications:
