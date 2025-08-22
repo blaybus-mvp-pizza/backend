@@ -13,7 +13,12 @@ class ProductAdminListItem(BaseModel):
     created_at: str
     updated_at: str
     auction_id: Optional[int]
-    status: str = Field(..., description="auction.status=='ENDED' ? SOLD : AVAILABLE")
+    is_active: bool = Field(
+        True, description="상품이 활성화 상태인지 여부", example=True
+    )
+    is_sold: bool = Field(
+        False, description="상품이 판매 완료 상태인지 여부", example=False
+    )
 
 
 class ProductBase(BaseModel):
@@ -63,7 +68,6 @@ class ProductAdminMeta(ProductBase):
     auction_id: Optional[int] = Field(
         None, description="경매 ID (경매 상품인 경우)", example=4001
     )
-    status: str = Field(..., description="auction.status=='ENDED' ? SOLD : AVAILABLE")
     store_description: Optional[str]
     store_sales_description: Optional[str]
     auction_start_price: Optional[Decimal] = Field(
@@ -71,6 +75,12 @@ class ProductAdminMeta(ProductBase):
     )
     auction_buy_now_price: Optional[Decimal] = Field(
         None, description="경매 즉시 구매 가격", example="200000.00"
+    )
+    is_active: bool = Field(
+        True, description="상품이 활성화 상태인지 여부", example=True
+    )
+    is_sold: bool = Field(
+        False, description="상품이 판매 완료 상태인지 여부", example=False
     )
 
 

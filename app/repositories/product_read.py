@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc, and_, or_
 from sqlalchemy import select, func, desc, and_
 from app.domains.common.paging import Page
-from app.domains.products.enums import ProductAdminStatusFilter, StatusFilter
 from app.domains.products.admin_product import ProductAdminListItem, ProductAdminMeta
 from app.domains.products.admin_store import StoreAdminMeta
 from app.schemas.auctions.auction_offer import AuctionOffer

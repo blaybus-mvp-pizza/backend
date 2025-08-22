@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc, and_, or_
 from sqlalchemy import select, func, desc, and_
 from app.domains.common.paging import Page
-from app.domains.products.enums import ProductAdminStatusFilter, StatusFilter
 from app.domains.products.admin_product import ProductAdminListItem, ProductAdminMeta
 from app.domains.products.admin_store import StoreAdminMeta
 from app.schemas.auctions.auction_offer import AuctionOffer
@@ -121,12 +120,9 @@ class ProductAdminReadRepository:
             courier_name=prod.courier_name,
             created_at=prod.created_at.isoformat(),
             updated_at=prod.updated_at.isoformat(),
+            is_active=prod.is_active,
+            is_sold=prod.is_sold,
             auction_id=auction.id if auction else None,
-            status=(
-                ProductAdminStatusFilter.SOLD
-                if auction and auction.status == StatusFilter.ENDED
-                else ProductAdminStatusFilter.AVAILABLE
-            ),
             store_description=store.description,
             store_sales_description=store.sales_description,
             auction_start_price=auction.start_price if auction else None,
@@ -138,7 +134,9 @@ class ProductAdminReadRepository:
         *,
         limit: int = 10,
         offset: int = 0,
-        status: Optional[str] = None,  # ALL | available | sold
+        is_active: bool = None,  # True for active, False for inactive
+        is_sold: bool = None,  # True for sold, False for available
+        store_id: Optional[int] = None,  # specific store ID or None for all
         category: Optional[str] = None,  # ALL or concrete category string
         q: Optional[str] = None,  # keyword search
     ) -> Tuple[List[ProductAdminListItem], int]:
@@ -155,13 +153,12 @@ class ProductAdminReadRepository:
         )
 
         # Apply filters
-        if status and status != "ALL":
-            if status == ProductAdminStatusFilter.AVAILABLE:
-                stmt = stmt.where(
-                    or_(Auction.status != StatusFilter.ENDED, Auction.id.is_(None))
-                )
-            elif status == ProductAdminStatusFilter.SOLD:
-                stmt = stmt.where(Auction.status == StatusFilter.ENDED)
+        if is_active is not None:
+            stmt = stmt.where(Product.is_active == is_active)
+        if is_sold is not None:
+            stmt = stmt.where(Product.is_sold == is_sold)
+        if store_id is not None:
+            stmt = stmt.where(Product.popup_store_id == store_id)
         if category and category != "ALL":
             stmt = stmt.where(Product.category == category)
         if q:
@@ -183,6 +180,8 @@ class ProductAdminReadRepository:
                 Product.category,
                 Product.created_at,
                 Product.updated_at,
+                Product.is_active,
+                Product.is_sold,
                 Auction.id.label("auction_id"),
                 Auction.status.label("auction_status"),
             )
@@ -199,12 +198,9 @@ class ProductAdminReadRepository:
                 category=row.category,
                 created_at=row.created_at.isoformat(),
                 updated_at=row.updated_at.isoformat(),
+                is_active=row.is_active,
+                is_sold=row.is_sold,
                 auction_id=row.auction_id,
-                status=(
-                    ProductAdminStatusFilter.SOLD
-                    if row.auction_status == StatusFilter.ENDED
-                    else ProductAdminStatusFilter.AVAILABLE
-                ),  # noqa: E501
             )
             for row in rows
         ]

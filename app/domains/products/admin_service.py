@@ -1,13 +1,4 @@
-from ast import Store
-from datetime import datetime
 from typing import List
-from app.domains.products.enums import (
-    SortOption,
-    StatusFilter,
-    BiddersFilter,
-    PriceBucket,
-    ProductAdminStatusFilter,
-)
 from app.core.errors import BusinessError
 
 from app.domains.common.paging import Page, paginate
@@ -105,7 +96,9 @@ class ProductAdminService:
         *,
         page: int,
         size: int,
-        status: ProductAdminStatusFilter = ProductAdminStatusFilter.ALL,
+        is_active: bool | None = None,
+        is_sold: bool | None = None,
+        store_id: int | None = None,
         category: str | None = None,
         q: str | None = None,
     ) -> Page[ProductAdminListItem]:
@@ -114,9 +107,9 @@ class ProductAdminService:
         items, total = self.products_admin_read.product_admin_list(
             limit=size,
             offset=offset,
-            status=(
-                status.value if isinstance(status, ProductAdminStatusFilter) else status
-            ),
+            is_active=is_active,
+            is_sold=is_sold,
+            store_id=store_id,
             category=category,
             q=q,
         )
