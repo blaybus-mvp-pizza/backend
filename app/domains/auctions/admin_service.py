@@ -12,6 +12,7 @@ from app.domains.auctions.admin_dto import (
     AdminAuctionStatusUpdateRequest,
     AdminAuctionShipmentInfo,
 )
+from app.domains.common.tx import transactional
 from app.repositories.auction_admin_read import AuctionAdminReadRepository
 from app.repositories.auction_admin_write import AuctionAdminWriteRepository
 from app.repositories.auction_read import AuctionReadRepository
@@ -109,19 +110,21 @@ class AuctionAdminService:
                     ErrorCode.INVALID_AUCTION_STATUS,
                     "수정은 시작일시 이전이면서 SCHEDULED 상태에서만 가능합니다.",
                 )
-
-        a = self.write_admin.upsert(
-            id=req.id,
-            product_id=req.product_id,
-            start_price=float(req.start_price),
-            min_bid_price=float(req.min_bid_price),
-            buy_now_price=float(req.buy_now_price) if req.buy_now_price is not None else None,
-            deposit_amount=float(req.deposit_amount),
-            starts_at=starts,
-            ends_at=ends,
-            status=req.status or AuctionStatus.SCHEDULED.value,
-        )
-        return self.detail(a.id)
+        with transactional(self.session):
+            a = self.write_admin.upsert(
+                id=req.id,
+                product_id=req.product_id,
+                start_price=float(req.start_price),
+                min_bid_price=float(req.min_bid_price),
+                buy_now_price=(
+                    float(req.buy_now_price) if req.buy_now_price is not None else None
+                ),
+                deposit_amount=float(req.deposit_amount),
+                starts_at=starts,
+                ends_at=ends,
+                status=req.status or AuctionStatus.SCHEDULED.value,
+            )
+            return self.detail(a.id)
 
     def update_status(self, auction_id: int, req: AdminAuctionStatusUpdateRequest) -> AdminAuctionDetail:
         a = self.session.get(Auction, auction_id)
@@ -149,24 +152,31 @@ class AuctionAdminService:
                 raise BusinessError(ErrorCode.INVALID_AUCTION_STATUS, "진행중일 때만 일시중단할 수 있습니다.")
         else:
             raise BusinessError(ErrorCode.INVALID_AUCTION_STATUS, "허용되지 않는 상태입니다.")
-        self.write_admin.update_status(auction_id, req.status)
-
-        # Notifications for pause/resume
-        try:
-            title = f"{a.product.store.name if a.product and a.product.store else ''} {a.product.name if a.product else ''}"
-            message = None
-            if req.status == AuctionStatus.PAUSED.value:
-                message = f"‘{title}’ 경매가 일시중단됐어요."
-            elif req.status == AuctionStatus.RUNNING.value:
-                message = f"‘{title}’ 경매가 재개됐어요."
-            if message:
-                # send to all distinct bidders so far
-                for uid in self.read.list_distinct_bidder_user_ids(auction_id):
-                    self.notifications.send(NotifyRequest(user_id=uid, title=message, body="5일", product_id=a.product_id))
-        except Exception:
-            # do not break main flow on notification failures
-            pass
-        return self.detail(auction_id)
+        with transactional(self.session):
+            self.write_admin.update_status(auction_id, req.status)
+            # Notifications for pause/resume
+            try:
+                title = f"{a.product.store.name if a.product and a.product.store else ''} {a.product.name if a.product else ''}"
+                message = None
+                if req.status == AuctionStatus.PAUSED.value:
+                    message = f"‘{title}’ 경매가 일시중단됐어요."
+                elif req.status == AuctionStatus.RUNNING.value:
+                    message = f"‘{title}’ 경매가 재개됐어요."
+                if message:
+                    # send to all distinct bidders so far
+                    for uid in self.read.list_distinct_bidder_user_ids(auction_id):
+                        self.notifications.send(
+                            NotifyRequest(
+                                user_id=uid,
+                                title=message,
+                                body="5일",
+                                product_id=a.product_id,
+                            )
+                        )
+            except Exception:
+                # do not break main flow on notification failures
+                pass
+            return self.detail(auction_id)
 
     def shipment_info(self, auction_id: int) -> AdminAuctionShipmentInfo:
         # reuse detail and project fields; for now return minimal placeholders
@@ -193,5 +203,3 @@ class AuctionAdminService:
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone(timedelta(hours=9)))
         return dt.astimezone(timezone.utc)
-
-
