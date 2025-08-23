@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
 from app.domains.common.base_model import BaseResponseModel, BaseRequestModel
 
 
@@ -39,15 +40,15 @@ class AdminAuctionDetail(BaseModel):
     is_won: bool
 
 
-class AdminAuctionUpsertRequest(BaseModel):
+class AdminAuctionUpsertRequest(BaseRequestModel):
     id: Optional[int] = Field(None, description="수정 시 경매 ID")
     product_id: int = Field(..., description="상품 ID")
     start_price: float
     min_bid_price: float
     buy_now_price: Optional[float] = None
     deposit_amount: float
-    starts_at: str = Field(..., description="한국시간(KST) ISO8601 입력")
-    ends_at: str = Field(..., description="한국시간(KST) ISO8601 입력")
+    starts_at: datetime = Field(..., description="한국시간(KST) datetime 입력")
+    ends_at: datetime = Field(..., description="한국시간(KST) datetime 입력")
     status: Optional[str] = Field("SCHEDULED", description="기본 SCHEDULED")
 
 

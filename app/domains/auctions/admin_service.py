@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from app.core.errors import BusinessError
-from app.domains.common.str_to_datetime import str_to_datetime
 from app.core.error_codes import ErrorCode
 from app.domains.common.paging import Page, paginate
 from app.domains.auctions.admin_dto import (
@@ -86,8 +85,8 @@ class AuctionAdminService:
             raise BusinessError(ErrorCode.INVALID_AUCTION_PRICE_RULE, "최소입찰가가 시작가보다 큽니다.")
         if req.buy_now_price is not None and req.start_price > req.buy_now_price:
             raise BusinessError(ErrorCode.INVALID_AUCTION_PRICE_RULE, "시작가가 즉시구매가보다 큽니다.")
-        starts = str_to_datetime(req.starts_at)
-        ends = str_to_datetime(req.ends_at)
+        starts = req.starts_at  # BaseRequestModel에서 이미 KST → UTC 변환됨
+        ends = req.ends_at      # BaseRequestModel에서 이미 KST → UTC 변환됨
         if starts >= ends:
             raise BusinessError(ErrorCode.INVALID_AUCTION_TIME_RANGE, "시작일시는 종료일시보다 빨라야 합니다.")
 
