@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 from typing import Optional
 from app.core.errors import BusinessError
+from app.domains.common.str_to_datetime import str_to_datetime
 from app.core.error_codes import ErrorCode
 from app.domains.common.paging import Page, paginate
 from app.domains.auctions.admin_dto import (
@@ -85,8 +86,8 @@ class AuctionAdminService:
             raise BusinessError(ErrorCode.INVALID_AUCTION_PRICE_RULE, "최소입찰가가 시작가보다 큽니다.")
         if req.buy_now_price is not None and req.start_price > req.buy_now_price:
             raise BusinessError(ErrorCode.INVALID_AUCTION_PRICE_RULE, "시작가가 즉시구매가보다 큽니다.")
-        starts = self._parse_kst_to_utc(req.starts_at)
-        ends = self._parse_kst_to_utc(req.ends_at)
+        starts = str_to_datetime(req.starts_at)
+        ends = str_to_datetime(req.ends_at)
         if starts >= ends:
             raise BusinessError(ErrorCode.INVALID_AUCTION_TIME_RANGE, "시작일시는 종료일시보다 빨라야 합니다.")
 
@@ -189,17 +190,4 @@ class AuctionAdminService:
             delivered_at=None,
         )
 
-    def _parse_kst_to_utc(self, s: str) -> datetime:
-        """Parse input assumed as KST (UTC+9) unless explicit offset provided, then convert to UTC."""
-        s_norm = s.strip()
-        if s_norm.endswith("Z") or "+" in s_norm[10:] or "-" in s_norm[10:]:
-            dt = datetime.fromisoformat(s_norm.replace("Z", "+00:00"))
-            if dt.tzinfo is None:
-                # Treat as KST if naive
-                dt = dt.replace(tzinfo=timezone(timedelta(hours=9)))
-        else:
-            # Naive -> KST
-            dt = datetime.fromisoformat(s_norm)
-            if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone(timedelta(hours=9)))
-        return dt.astimezone(timezone.utc)
+
