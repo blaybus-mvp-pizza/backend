@@ -15,9 +15,10 @@ from app.domains.products.store_meta import StoreMeta
 from app.domains.products.product_meta import ProductMeta, ProductSpecs
 from app.domains.products.product_list_item import ProductListItem
 from app.domains.products.store_with_products import StoreWithProducts
+from app.core.repository_mixins import TimezoneConversionMixin
 
 
-class ProductReadRepository:
+class ProductReadRepository(TimezoneConversionMixin):
     def __init__(self, db: Session):
         self.db = db
 

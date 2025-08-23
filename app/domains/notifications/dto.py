@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+from app.domains.common.base_model import BaseResponseModel
 
 
 class NotifyRequest(BaseModel):
@@ -15,7 +16,7 @@ class NotifyResult(BaseModel):
     ok: bool = True
 
 
-class NotificationItem(BaseModel):
+class NotificationItem(BaseResponseModel):
     id: int
     title: str
     body: str
