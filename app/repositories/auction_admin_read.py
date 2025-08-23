@@ -1,6 +1,7 @@
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc, and_, or_, exists
+from app.core.timezone import utc_to_kst
 from app.schemas.auctions import Auction, Bid
 from app.schemas.products import Product, ProductImage
 from app.schemas.stores import PopupStore
@@ -178,7 +179,8 @@ class AuctionAdminReadRepository:
         else:
             stmt = stmt.order_by(Auction.starts_at.desc())
 
-        count_stmt = select(func.count(Auction.id)).select_from(Auction)
+        # 필터링된 total을 위해 기존 stmt를 이용해 count stmt 생성
+        count_stmt = stmt.with_only_columns(func.count(Auction.id))
         items_rows = self.db.execute(stmt.limit(size).offset((page - 1) * size)).all()
         total = int(self.db.execute(count_stmt).scalar_one())
 
@@ -255,8 +257,8 @@ class AuctionAdminReadRepository:
                     product_name=str(r.product_name),
                     start_price=float(r.start_price),
                     buy_now_price=float(r.buy_now_price) if r.buy_now_price is not None else None,
-                    starts_at=r.starts_at.isoformat(),
-                    ends_at=r.ends_at.isoformat(),
+                    starts_at=utc_to_kst(r.starts_at).isoformat(),
+                    ends_at=utc_to_kst(r.ends_at).isoformat(),
                     status=str(r.status),
                     payment_status=payment_ko,
                     shipment_status=shipment_ko,
@@ -367,8 +369,8 @@ class AuctionAdminReadRepository:
             min_bid_price=float(r.min_bid_price),
             buy_now_price=float(r.buy_now_price) if r.buy_now_price is not None else None,
             deposit_amount=float(r.deposit_amount),
-            starts_at=r.starts_at.isoformat(),
-            ends_at=r.ends_at.isoformat(),
+            starts_at=utc_to_kst(r.starts_at).isoformat(),
+            ends_at=utc_to_kst(r.ends_at).isoformat(),
             status=str(r.status),
             current_highest_bid=float(r.current_highest_bid) if r.current_highest_bid is not None else None,
             bidder_count=int(r.bidder_count),

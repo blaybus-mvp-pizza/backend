@@ -1,10 +1,14 @@
 from typing import Iterable, List
+from app.core.repository_mixins import TimezoneConversionMixin
 from app.domains.auctions.auction_info import AuctionInfo
 from app.domains.auctions.bid_item import BidItem, UserBrief
 
 
 def row_to_auction_info(row) -> AuctionInfo:
-    m = row._mapping if hasattr(row, "_mapping") else row
+    timezone_converter = TimezoneConversionMixin()
+    
+    r = row._mapping if hasattr(row, "_mapping") else row
+    m = timezone_converter.convert_row_datetimes(r)
     return AuctionInfo(
         auction_id=m["id"],
         buy_now_price=(

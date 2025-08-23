@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     # JWT
     SECRET_KEY: str = "change-me"  # set in .env for prod
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
 
     # Google OAuth
     GOOGLE_CLIENT_ID: str = ""

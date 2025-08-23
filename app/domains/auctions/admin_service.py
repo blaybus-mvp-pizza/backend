@@ -107,7 +107,8 @@ class AuctionAdminService:
             now_utc = datetime.now(timezone.utc)
             # Normalize DB datetimes to timezone-aware (assume UTC if naive)
             if target.starts_at.tzinfo is None:
-                starts_at = self._parse_kst_to_utc(target.starts_at.isoformat())
+                # If starts_at is naive, assume UTC
+                starts_at = target.starts_at.replace(tzinfo=timezone.utc)
             if not (target.status == AuctionStatus.SCHEDULED.value and now_utc < starts_at):
                 raise BusinessError(
                     ErrorCode.INVALID_AUCTION_STATUS,
