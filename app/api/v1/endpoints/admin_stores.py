@@ -18,7 +18,7 @@ def get_product_service(db: Session = Depends(get_db)) -> ProductAdminService:
 
 class AdminStoresAPI:
     def __init__(self):
-        self.router = APIRouter(dependencies=[Depends(require_admin)])
+        self.router = APIRouter()
 
         @self.router.get(
             "",
