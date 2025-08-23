@@ -105,7 +105,10 @@ class AuctionAdminService:
             target = existing
         if target is not None:
             now_utc = datetime.now(timezone.utc)
-            if not (target.status == AuctionStatus.SCHEDULED.value and now_utc < target.starts_at):
+            # Normalize DB datetimes to timezone-aware (assume UTC if naive)
+            if target.starts_at.tzinfo is None:
+                starts_at = self._parse_kst_to_utc(target.starts_at.isoformat())
+            if not (target.status == AuctionStatus.SCHEDULED.value and now_utc < starts_at):
                 raise BusinessError(
                     ErrorCode.INVALID_AUCTION_STATUS,
                     "수정은 시작일시 이전이면서 SCHEDULED 상태에서만 가능합니다.",
