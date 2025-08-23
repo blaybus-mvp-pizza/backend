@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from app.core.auth_deps import require_admin
 from app.domains.common.error_response import BusinessErrorResponse, ServerErrorResponse
 from app.domains.common.paging import Page
 
@@ -21,7 +22,7 @@ def get_product_service(db: Session = Depends(get_db)) -> ProductAdminService:
 
 class AdminProductsAPI:
     def __init__(self):
-        self.router = APIRouter()
+        self.router = APIRouter(dependencies=[Depends(require_admin)])
 
         @self.router.get(
             "",
