@@ -1,13 +1,17 @@
 from typing import Iterable, List
 from datetime import datetime, timedelta
 from app.domains.products.product_list_item import ProductListItem
+from app.core.repository_mixins import TimezoneConversionMixin
 
 
 def rows_to_product_items(rows: Iterable) -> List[ProductListItem]:
     items: List[ProductListItem] = []
     now = datetime.utcnow()
+    timezone_converter = TimezoneConversionMixin()
+    
     for r in rows:
-        m = r._mapping if hasattr(r, "_mapping") else r
+        # 시간대 변환 적용
+        m = timezone_converter.convert_row_datetimes(r)
         labels: List[str] = []
         # 신규상품: 생성일 10일 이내
         created_at = m.get("product_created_at") or m.get("created_at")
@@ -37,11 +41,7 @@ def rows_to_product_items(rows: Iterable) -> List[ProductListItem]:
                     else None
                 ),
                 representative_image=m.get("representative_image"),
-                auction_ends_at=(
-                    m["auction_ends_at"].isoformat()
-                    if m.get("auction_ends_at")
-                    else None
-                ),
+                auction_ends_at=m.get("auction_ends_at"),
                 labels=labels,
             )
         )

@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from app.domains.common.base_model import BaseResponseModel, BaseRequestModel
 
 
 class AdminAuctionListItem(BaseModel):

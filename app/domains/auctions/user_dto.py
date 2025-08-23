@@ -1,6 +1,8 @@
 from enum import Enum
 from pydantic import BaseModel, Field
 from typing import Optional
+from datetime import datetime
+from app.domains.common.base_model import BaseResponseModel
 
 
 class MyAuctionItemStatus(str, Enum):
@@ -21,7 +23,7 @@ class UserAuctionDashboard(BaseModel):
     delivered_count: int = Field(..., description="배송 완료: 내가 낙찰되었고 배송 완료")
 
 
-class UserRelatedAuctionItem(BaseModel):
+class UserRelatedAuctionItem(BaseResponseModel):
     product_id: int = Field(..., description="상품 ID")
     auction_id: int = Field(..., description="경매 ID")
     image_url: Optional[str] = Field(None, description="상품 대표 이미지 URL")
@@ -31,6 +33,6 @@ class UserRelatedAuctionItem(BaseModel):
     )
     my_bid_amount: Optional[float] = Field(None, description="내가 입찰한 금액(최고)\n")
     status: MyAuctionItemStatus = Field(..., description="항목 상태")
-    my_last_bid_at: str = Field(..., description="내 마지막 입찰 일시(ISO)")
+    my_last_bid_at: datetime = Field(..., description="내 마지막 입찰 일시(KST)")
 
 
