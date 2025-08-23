@@ -178,7 +178,8 @@ class AuctionAdminReadRepository:
         else:
             stmt = stmt.order_by(Auction.starts_at.desc())
 
-        count_stmt = select(func.count(Auction.id)).select_from(Auction)
+        # 필터링된 total을 위해 기존 stmt를 이용해 count stmt 생성
+        count_stmt = stmt.with_only_columns(func.count(Auction.id))
         items_rows = self.db.execute(stmt.limit(size).offset((page - 1) * size)).all()
         total = int(self.db.execute(count_stmt).scalar_one())
 
