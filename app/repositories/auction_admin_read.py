@@ -1,6 +1,7 @@
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import select, func, desc, and_, or_, exists
+from app.core.timezone import utc_to_kst
 from app.schemas.auctions import Auction, Bid
 from app.schemas.products import Product, ProductImage
 from app.schemas.stores import PopupStore
@@ -256,8 +257,8 @@ class AuctionAdminReadRepository:
                     product_name=str(r.product_name),
                     start_price=float(r.start_price),
                     buy_now_price=float(r.buy_now_price) if r.buy_now_price is not None else None,
-                    starts_at=r.starts_at.isoformat(),
-                    ends_at=r.ends_at.isoformat(),
+                    starts_at=utc_to_kst(r.starts_at).isoformat(),
+                    ends_at=utc_to_kst(r.ends_at).isoformat(),
                     status=str(r.status),
                     payment_status=payment_ko,
                     shipment_status=shipment_ko,
@@ -368,8 +369,8 @@ class AuctionAdminReadRepository:
             min_bid_price=float(r.min_bid_price),
             buy_now_price=float(r.buy_now_price) if r.buy_now_price is not None else None,
             deposit_amount=float(r.deposit_amount),
-            starts_at=r.starts_at.isoformat(),
-            ends_at=r.ends_at.isoformat(),
+            starts_at=utc_to_kst(r.starts_at).isoformat(),
+            ends_at=utc_to_kst(r.ends_at).isoformat(),
             status=str(r.status),
             current_highest_bid=float(r.current_highest_bid) if r.current_highest_bid is not None else None,
             bidder_count=int(r.bidder_count),
