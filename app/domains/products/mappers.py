@@ -30,6 +30,7 @@ def rows_to_product_items(rows: Iterable) -> List[ProductListItem]:
                 product_id=m["product_id"],
                 popup_store_name=m["popup_store_name"],
                 product_name=m["product_name"],
+                auction_status=m.get("auction_status"),
                 current_highest_bid=(
                     float(m["current_highest_bid"])
                     if m.get("current_highest_bid") is not None
@@ -41,6 +42,7 @@ def rows_to_product_items(rows: Iterable) -> List[ProductListItem]:
                     else None
                 ),
                 representative_image=m.get("representative_image"),
+                auction_starts_at=m.get("auction_starts_at"),
                 auction_ends_at=m.get("auction_ends_at"),
                 labels=labels,
             )

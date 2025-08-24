@@ -198,9 +198,11 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.id.label("product_id"),
                 PopupStore.name.label("popup_store_name"),
                 Product.name.label("product_name"),
+                Auction.status.label("auction_status"),
                 highest_bid.label("current_highest_bid"),
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
+                Auction.starts_at.label("auction_starts_at"),
                 Auction.ends_at.label("auction_ends_at"),
                 bidder_count.label("bidder_count"),
                 Product.created_at.label("product_created_at"),
@@ -212,6 +214,7 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.is_sold == 0,
             )
         )
+        stmt = stmt.where(Auction.ends_at > func.now())
         stmt = self._apply_common_filters(
             stmt,
             status=status,
@@ -268,9 +271,11 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.id.label("product_id"),
                 PopupStore.name.label("popup_store_name"),
                 Product.name.label("product_name"),
+                Auction.status.label("auction_status"),
                 highest_bid.label("current_highest_bid"),
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
+                Auction.starts_at.label("auction_starts_at"),
                 Auction.ends_at.label("auction_ends_at"),
                 bid_count.label("bidder_count"),
                 Product.created_at.label("product_created_at"),
@@ -282,6 +287,7 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.is_sold == 0,
             )
         )
+        stmt = stmt.where(Auction.ends_at > func.now())
         stmt = self._apply_common_filters(
             stmt,
             status=status,
@@ -337,9 +343,11 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.id.label("product_id"),
                 PopupStore.name.label("popup_store_name"),
                 Product.name.label("product_name"),
+                Auction.status.label("auction_status"),
                 highest_bid.label("current_highest_bid"),
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
+                Auction.starts_at.label("auction_starts_at"),
                 Auction.ends_at.label("auction_ends_at"),
                 bidder_count.label("bidder_count"),
                 Product.created_at.label("product_created_at"),
@@ -351,6 +359,7 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.is_sold == 0,
             )
         )
+        stmt = stmt.where(Auction.ends_at > func.now())
         stmt = self._apply_common_filters(
             stmt,
             status=status,
@@ -416,9 +425,11 @@ class ProductReadRepository(TimezoneConversionMixin):
                     Product.id.label("product_id"),
                     PopupStore.name.label("popup_store_name"),
                     Product.name.label("product_name"),
+                    Auction.status.label("auction_status"),
                     highest_bid.label("current_highest_bid"),
                     Auction.buy_now_price.label("buy_now_price"),
                     rep_img.label("representative_image"),
+                    Auction.starts_at.label("auction_starts_at"),
                     Auction.ends_at.label("auction_ends_at"),
                     bidder_count.label("bidder_count"),
                     Product.created_at.label("product_created_at"),
@@ -431,6 +442,8 @@ class ProductReadRepository(TimezoneConversionMixin):
                     Product.is_sold == 0,
                 )
             )
+            # exclude expired auctions
+            stmt = stmt.where(Auction.ends_at > func.now())
             stmt = self._apply_common_filters(
                 stmt,
                 status=status,
@@ -524,9 +537,11 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.id.label("product_id"),
                 PopupStore.name.label("popup_store_name"),
                 Product.name.label("product_name"),
+                Auction.status.label("auction_status"),
                 highest_bid.label("current_highest_bid"),
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
+                Auction.starts_at.label("auction_starts_at"),
                 Auction.ends_at.label("auction_ends_at"),
                 bid_count.label("bidder_count"),
                 Product.created_at.label("product_created_at"),
@@ -539,6 +554,8 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.is_sold == 0,
             )
         )
+        # exclude expired auctions
+        stmt = stmt.where(Auction.ends_at > func.now())
         stmt = self._apply_common_filters(
             stmt,
             status=status,
@@ -597,10 +614,12 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.id.label("product_id"),
                 PopupStore.name.label("popup_store_name"),
                 Product.name.label("product_name"),
+                Auction.status.label("auction_status"),
                 highest_bid.label("current_highest_bid"),
                 Auction.buy_now_price.label("buy_now_price"),
                 rep_img.label("representative_image"),
-                Auction.starts_at.label("auction_ends_at"),
+                Auction.starts_at.label("auction_starts_at"),
+                Auction.ends_at.label("auction_ends_at"),
                 bidder_count.label("bidder_count"),
                 Product.created_at.label("product_created_at"),
             )
@@ -611,6 +630,7 @@ class ProductReadRepository(TimezoneConversionMixin):
                 Product.is_sold == 0,
             )
         )
+        stmt = stmt.where(Auction.ends_at > func.now())
         stmt = self._apply_common_filters(
             stmt,
             status=status,

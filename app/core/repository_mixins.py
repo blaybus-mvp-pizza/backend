@@ -14,7 +14,7 @@ class TimezoneConversionMixin:
     
     # 변환할 datetime 필드명들 (서브클래스에서 오버라이드 가능)
     DATETIME_FIELDS = [
-        'created_at', 'updated_at', 'starts_at', 'ends_at', 'auction_ends_at',
+        'created_at', 'updated_at', 'starts_at', 'ends_at', 'auction_starts_at', 'auction_ends_at',
         'sent_at', 'bid_at', 'last_bid_at', 'shipped_at', 'delivered_at'
     ]
     
