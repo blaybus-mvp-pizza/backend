@@ -1,22 +1,23 @@
 from typing import Iterable, List
 from datetime import datetime, timedelta
+from app.core.timezone import now_kst
 from app.domains.products.product_list_item import ProductListItem
 from app.core.repository_mixins import TimezoneConversionMixin
 
 
 def rows_to_product_items(rows: Iterable) -> List[ProductListItem]:
     items: List[ProductListItem] = []
-    now = datetime.utcnow()
+    now = now_kst()
     timezone_converter = TimezoneConversionMixin()
     
     for r in rows:
         # 시간대 변환 적용
         m = timezone_converter.convert_row_datetimes(r)
         labels: List[str] = []
-        # 신규상품: 생성일 10일 이내
-        created_at = m.get("product_created_at") or m.get("created_at")
-        if created_at and isinstance(created_at, datetime):
-            if now - created_at <= timedelta(days=10):
+        # 신규상품: 경매 시작 후 2일 이내
+        starts_at = m.get("auction_starts_at")
+        if starts_at and isinstance(starts_at, datetime):
+            if starts_at <= now and (now - starts_at) <= timedelta(days=2):
                 labels.append("신규상품")
         # 베스트: 입찰자 1명 이상
         bidder_count = m.get("bidder_count") or m.get("bid_count")
